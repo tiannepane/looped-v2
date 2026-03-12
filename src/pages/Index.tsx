@@ -435,7 +435,7 @@ const Index = () => {
           <h2 className="scroll-reveal text-4xl font-bold tracking-tight text-foreground text-center mb-4">
             For every season of your life
           </h2>
-          <p className="scroll-reveal text-base text-muted-foreground text-center mb-16">
+          <p className="scroll-reveal text-xl text-muted-foreground text-center mb-16" style={{ fontFamily: "'Gaegu', cursive" }}>
             Life changes. Your stuff should keep up.
           </p>
 
