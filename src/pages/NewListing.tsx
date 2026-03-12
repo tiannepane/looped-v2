@@ -410,12 +410,6 @@ const NewListing = () => {
               Done
             </Button>
 
-            {step === 4 && (
-              <div className="mt-8 text-center">
-                <p className="text-lg font-bold text-foreground">🎉 You're live!</p>
-                <p className="text-muted-foreground text-sm">Your item has been added to your listings.</p>
-              </div>
-            )}
           </div>
         )}
 
