@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -8,31 +8,171 @@ import {
   Star,
   ChevronLeft,
   ChevronRight,
+  ChevronDown,
 } from "lucide-react";
 import heroCouch from "@/assets/hero-couch.png";
-import heroLamp from "@/assets/hero-lamp.png";
-import heroKeyboard from "@/assets/hero-keyboard.png";
-import heroSneakers from "@/assets/hero-sneakers.png";
-import heroRecordplayer from "@/assets/hero-recordplayer.png";
-import heroTable from "@/assets/hero-table.png";
 
-// Floating product photos for hero
-const floatingItems = [
-  { src: heroCouch, alt: "Couch", className: "w-44 top-[10%] left-[6%] animate-float-1" },
-  { src: heroLamp, alt: "Lamp", className: "w-28 top-[6%] right-[10%] animate-float-2" },
-  { src: heroKeyboard, alt: "Keyboard", className: "w-36 bottom-[22%] left-[12%] animate-float-3" },
-  { src: heroSneakers, alt: "Sneakers", className: "w-32 top-[18%] right-[22%] animate-float-4" },
-  { src: heroRecordplayer, alt: "Record Player", className: "w-40 bottom-[14%] right-[6%] animate-float-5" },
-  { src: heroTable, alt: "Table", className: "w-48 bottom-[28%] left-[38%] animate-float-6" },
+// Calendar animation data
+const CALENDAR_MOMENTS = [
+  { month: "MARCH", color: "hsl(350, 40%, 70%)", circleDay: 14, label: "Moving Day" },
+  { month: "APRIL", color: "hsl(150, 25%, 55%)", circleDay: 8, label: "Spring Cleaning" },
+  { month: "JUNE", color: "hsl(45, 70%, 60%)", circleDay: 21, label: "Fresh Start" },
+  { month: "SEPTEMBER", color: "hsl(260, 30%, 75%)", circleDay: 3, label: "New Chapter" },
+  { month: "JANUARY", color: "hsl(210, 40%, 80%)", circleDay: 17, label: "New City" },
 ];
 
-// TODO: Replace with 3D illustrated characters from artist/Midjourney
-const lifeMomentCards = [
-  { emoji: "📦", label: "Moving Day", color: "bg-dusty-rose/20", className: "w-28 top-[30%] left-[3%] rotate-3 animate-float-7" },
-  { emoji: "💍", label: "New Chapter", color: "bg-sage/20", className: "w-24 top-[5%] left-[28%] rotate-[-5deg] animate-float-8" },
-  { emoji: "🧹", label: "Spring Reset", color: "bg-mustard/20", className: "w-26 bottom-[10%] right-[22%] rotate-[4deg] animate-float-9" },
-  { emoji: "💜", label: "Fresh Start", color: "bg-lavender/20", className: "w-24 bottom-[32%] right-[35%] rotate-[-3deg] animate-float-10" },
+const CALENDAR_DAYS = [
+  [null, null, 1, 2, 3, 4, 5],
+  [6, 7, 8, 9, 10, 11, 12],
+  [13, 14, 15, 16, 17, 18, 19],
+  [20, 21, 22, 23, 24, 25, 26],
+  [27, 28, 29, 30, 31, null, null],
 ];
+
+const CalendarAnimation = () => {
+  const [momentIndex, setMomentIndex] = useState(0);
+  const [phase, setPhase] = useState<"circle" | "type" | "hold" | "fade">("circle");
+  const [typedChars, setTypedChars] = useState(0);
+  const [fading, setFading] = useState(false);
+
+  const moment = CALENDAR_MOMENTS[momentIndex];
+
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout>;
+
+    if (phase === "circle") {
+      timeout = setTimeout(() => {
+        setPhase("type");
+        setTypedChars(0);
+      }, 900);
+    } else if (phase === "type") {
+      if (typedChars < moment.label.length) {
+        timeout = setTimeout(() => setTypedChars((c) => c + 1), 60);
+      } else {
+        timeout = setTimeout(() => setPhase("hold"), 200);
+      }
+    } else if (phase === "hold") {
+      timeout = setTimeout(() => {
+        setFading(true);
+        setPhase("fade");
+      }, 2000);
+    } else if (phase === "fade") {
+      timeout = setTimeout(() => {
+        setFading(false);
+        setMomentIndex((i) => (i + 1) % CALENDAR_MOMENTS.length);
+        setPhase("circle");
+        setTypedChars(0);
+      }, 500);
+    }
+
+    return () => clearTimeout(timeout);
+  }, [phase, typedChars, moment.label.length, momentIndex]);
+
+  return (
+    <div
+      className="w-56 lg:w-64 bg-card rounded-2xl shadow-xl overflow-hidden select-none"
+      style={{
+        transform: "rotate(2deg)",
+        animation: "calendar-float 4s ease-in-out infinite",
+      }}
+    >
+      <div
+        className={`transition-opacity duration-500 ${fading ? "opacity-0" : "opacity-100"}`}
+      >
+        {/* Color strip */}
+        <div className="h-8 rounded-t-2xl" style={{ background: moment.color }} />
+
+        <div className="px-5 pt-3 pb-5">
+          {/* Month */}
+          <p
+            className="text-[11px] uppercase tracking-[0.2em] font-medium text-center mb-3"
+            style={{ color: moment.color }}
+          >
+            {moment.month}
+          </p>
+
+          {/* Day-of-week headers */}
+          <div className="grid grid-cols-7 gap-y-1.5 mb-1">
+            {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
+              <span key={i} className="text-[9px] text-muted-foreground/50 text-center font-medium">
+                {d}
+              </span>
+            ))}
+          </div>
+
+          {/* Calendar grid */}
+          <div className="grid grid-cols-7 gap-y-1.5">
+            {CALENDAR_DAYS.flat().map((day, i) => {
+              const isCircled = day === moment.circleDay;
+              return (
+                <div key={i} className="relative flex items-center justify-center h-6">
+                  <span className={`text-[10px] ${day ? "text-foreground/30" : ""} text-center`}>
+                    {day ?? ""}
+                  </span>
+                  {isCircled && phase !== "circle" && (
+                    <svg
+                      className="absolute inset-0 w-full h-full"
+                      viewBox="0 0 24 24"
+                    >
+                      <ellipse
+                        cx="12"
+                        cy="12"
+                        rx="10"
+                        ry="9"
+                        fill="none"
+                        stroke={moment.color}
+                        strokeWidth="1.5"
+                        strokeDasharray="60"
+                        strokeDashoffset="0"
+                        strokeLinecap="round"
+                        style={{ animation: "draw-circle 0.8s ease-out forwards" }}
+                        transform="rotate(-10 12 12)"
+                      />
+                    </svg>
+                  )}
+                  {isCircled && phase === "circle" && (
+                    <svg
+                      className="absolute inset-0 w-full h-full"
+                      viewBox="0 0 24 24"
+                    >
+                      <ellipse
+                        cx="12"
+                        cy="12"
+                        rx="10"
+                        ry="9"
+                        fill="none"
+                        stroke={moment.color}
+                        strokeWidth="1.5"
+                        strokeDasharray="60"
+                        strokeDashoffset="60"
+                        strokeLinecap="round"
+                        style={{ animation: "draw-circle 0.8s ease-out forwards" }}
+                        transform="rotate(-10 12 12)"
+                      />
+                    </svg>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Typewriter label */}
+          <div className="mt-3 h-5 flex items-center justify-center">
+            <span
+              className="text-xs font-semibold tracking-tight"
+              style={{ color: moment.color }}
+            >
+              {moment.label.slice(0, typedChars)}
+              {phase === "type" && (
+                <span className="inline-block w-[1px] h-3 ml-0.5 align-middle" style={{ background: moment.color, animation: "blink-cursor 0.6s step-end infinite" }} />
+              )}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const howItWorks = [
   {
@@ -140,47 +280,41 @@ const Index = () => {
       </nav>
 
       {/* ===== SECTION 1: HERO ===== */}
-      <section className="relative flex items-center justify-center min-h-screen overflow-hidden px-8">
-        {/* Floating product photos */}
-        {floatingItems.map((item, i) => (
-          <img
-            key={i}
-            src={item.src}
-            alt={item.alt}
-            className={`absolute pointer-events-none select-none opacity-60 ${item.className}`}
-          />
-        ))}
-
-        {/* TODO: Replace with 3D illustrated character cards */}
-        {lifeMomentCards.map((card, i) => (
-          <div
-            key={i}
-            className={`absolute pointer-events-none select-none ${card.className}`}
-          >
-            <div className={`${card.color} rounded-2xl px-4 py-5 text-center shadow-sm relative tape-effect`}>
-              <span className="text-2xl block mb-1">{card.emoji}</span>
-              <span className="text-xs font-semibold text-foreground/70 tracking-tight">
-                {card.label}
-              </span>
+      <section className="relative flex items-center justify-center min-h-screen px-12">
+        <div className="w-full max-w-[1800px] mx-auto flex items-center justify-between gap-8">
+          {/* Left: Typography */}
+          <div className="flex-1 min-w-0">
+            <h1
+              className="font-black uppercase leading-[0.9] text-foreground"
+              style={{ fontSize: "11vw", letterSpacing: "-0.03em" }}
+            >
+              MAKE IT<br />COUNT
+            </h1>
+            <p className="text-xl font-normal text-muted-foreground mt-6 max-w-lg">
+              Your stuff changes when your life does. Make it count.
+            </p>
+            <div className="mt-10">
+              <Button
+                asChild
+                className="rounded-lg px-10 py-4 h-auto text-base font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
+              >
+                <Link to="/new">Start Selling</Link>
+              </Button>
             </div>
           </div>
-        ))}
 
-        {/* Decorative sparkles */}
-        <Star className="absolute top-[15%] right-[40%] w-4 h-4 text-mustard/40 rotate-12 pointer-events-none" />
-        <Star className="absolute bottom-[20%] left-[25%] w-3 h-3 text-dusty-rose/40 rotate-[-20deg] pointer-events-none" />
-        <Star className="absolute top-[40%] right-[8%] w-5 h-5 text-lavender/30 rotate-45 pointer-events-none" />
+          {/* Right: Calendar animation */}
+          <div className="hidden md:flex items-center justify-center flex-shrink-0">
+            <CalendarAnimation />
+          </div>
+        </div>
 
-        <div className="relative z-10 text-center max-w-5xl">
-          <h1 className="text-7xl md:text-8xl lg:text-[10rem] font-black tracking-tight leading-[0.85] text-foreground mb-6">
-            <span className="wavy-underline">Cash</span> It<br />Out
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-lg mx-auto mb-10">
-            Your stuff changes when your life does. Make it count.
-          </p>
-          <Button asChild size="lg" className="rounded-xl text-base px-12 h-14 shadow-lg hover:shadow-xl transition-shadow">
-            <Link to="/new">Start Selling</Link>
-          </Button>
+        {/* Scroll indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
+          <ChevronDown
+            className="w-5 h-5 text-muted-foreground/40"
+            style={{ animation: "slow-bounce 2s ease-in-out infinite" }}
+          />
         </div>
       </section>
 
@@ -198,10 +332,9 @@ const Index = () => {
                 className={`scroll-reveal ${step.color} rounded-2xl p-8 hover:scale-[1.02] transition-all duration-300 relative overflow-hidden`}
                 style={{ transitionDelay: `${i * 100}ms` }}
               >
-                {/* Decorative sparkles in corners */}
                 <Sparkles className={`absolute top-4 right-4 w-4 h-4 ${step.iconColor} opacity-20`} />
 
-                <div className={`w-14 h-14 rounded-xl bg-card flex items-center justify-center mb-5 shadow-sm`}>
+                <div className="w-14 h-14 rounded-xl bg-card flex items-center justify-center mb-5 shadow-sm">
                   <step.icon className={`w-6 h-6 ${step.iconColor}`} />
                 </div>
                 <h3 className="text-xl font-bold tracking-tight text-foreground mb-2">
@@ -227,7 +360,6 @@ const Index = () => {
           </p>
 
           <div className="scroll-reveal relative flex items-center justify-center">
-            {/* Stat bubbles */}
             <div className="hidden lg:block absolute -left-4 top-8 bg-sage/15 text-sage rounded-full px-4 py-2 text-xs font-semibold shadow-sm rotate-[-3deg]">
               14,000+ prices tracked
             </div>
@@ -238,7 +370,6 @@ const Index = () => {
               Postal code accurate
             </div>
 
-            {/* Pricing mockup card */}
             <div className="bg-card rounded-2xl shadow-xl p-8 max-w-md w-full rotate-1 border border-border">
               <div className="flex items-start gap-4 mb-6">
                 <img
@@ -258,13 +389,9 @@ const Index = () => {
 
               <p className="text-5xl font-black text-primary mb-4">$340</p>
 
-              {/* Price range bar */}
               <div className="mb-2">
                 <div className="h-2 bg-accent rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-primary/30 rounded-full relative"
-                    style={{ width: "100%" }}
-                  >
+                  <div className="h-full bg-primary/30 rounded-full relative" style={{ width: "100%" }}>
                     <div
                       className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-primary rounded-full border-2 border-card shadow-sm"
                       style={{ left: "60%" }}
@@ -300,7 +427,6 @@ const Index = () => {
             Life changes. Your stuff should keep up.
           </p>
 
-          {/* Scroll controls */}
           <div className="relative">
             <button
               onClick={() => scrollCards(-1)}
@@ -326,7 +452,6 @@ const Index = () => {
                   className={`scroll-reveal flex-shrink-0 w-72 ${moment.bg} rounded-2xl p-8 flex flex-col justify-between relative overflow-hidden hover:scale-[1.02] transition-all duration-300`}
                   style={{ aspectRatio: "3/4", transitionDelay: `${i * 80}ms` }}
                 >
-                  {/* Tape effect on some cards */}
                   {i % 2 === 0 && <div className="tape-effect" />}
 
                   <div>
@@ -378,7 +503,6 @@ const Index = () => {
             Made in Toronto 🇨🇦
           </span>
           <div className="flex gap-4 text-xs text-muted-foreground">
-            {/* TODO: Add real links */}
             <a href="#" className="hover:text-foreground transition-colors">FAQ</a>
             <a href="#" className="hover:text-foreground transition-colors">Twitter</a>
             <a href="#" className="hover:text-foreground transition-colors">Instagram</a>
