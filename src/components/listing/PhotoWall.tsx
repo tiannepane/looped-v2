@@ -80,6 +80,7 @@ const PhotoWall = ({
   const [dragOverTarget, setDragOverTarget] = useState<string | null>(null);
   const [hoveredCoaster, setHoveredCoaster] = useState<string | null>(null);
   const [expandedCoaster, setExpandedCoaster] = useState<string | null>(null);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [bonusRoundTransition, setBonusRoundTransition] = useState(false);
   const [bonusMessage, setBonusMessage] = useState("");
   const [newItemNaming, setNewItemNaming] = useState(false);
