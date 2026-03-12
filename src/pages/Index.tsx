@@ -475,7 +475,7 @@ const Index = () => {
           <h2 className="scroll-reveal text-4xl font-bold tracking-tight text-foreground mb-3">
             Your stuff is worth more than you think.
           </h2>
-          <p className="scroll-reveal text-lg text-muted-foreground italic mb-10">
+          <p className="scroll-reveal text-xl text-muted-foreground italic mb-10" style={{ fontFamily: "'Gaegu', cursive" }}>
             Especially that couch.
           </p>
           <div className="scroll-reveal">
