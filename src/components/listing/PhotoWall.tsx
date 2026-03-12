@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { Plus, Pencil, Check } from "lucide-react";
+import { Plus, Pencil, Check, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ItemGroup } from "./KanbanBoard";
 import type { ItemPricing } from "./BulkPricingStep";
@@ -22,17 +22,19 @@ const ZONE_COLORS = [
   { bg: "bg-sky-500/[0.08]", hover: "bg-sky-500/20", border: "border-sky-400", ring: "ring-sky-200" },
 ];
 
-/** Pseudo-random rotation for a photo based on its index */
 const ROTATIONS = [-2, 3, -1, 2, -3, 1, -2, 4, -1, 3];
 const getRotation = (i: number) => ROTATIONS[i % ROTATIONS.length];
 
-/** Printed photo on the table */
+const FRAME_ROTATIONS = [-0.5, 0.5, -0.3, 0.4, -0.6, 0.3];
+
+/** Printed photo with delete button */
 const TablePhoto = ({
   src,
   alt,
   rotation,
   groupId,
   onDragStart,
+  onDelete,
   className = "",
 }: {
   src: string;
@@ -40,20 +42,32 @@ const TablePhoto = ({
   rotation: number;
   groupId: string | null;
   onDragStart: (photo: string, groupId: string | null) => void;
+  onDelete?: () => void;
   className?: string;
 }) => (
-  <img
-    src={src}
-    alt={alt}
-    draggable
-    onDragStart={(e) => {
-      e.dataTransfer.effectAllowed = "move";
-      onDragStart(src, groupId);
-    }}
-    className={`w-28 h-36 object-cover rounded-lg shadow-md ring-2 ring-white cursor-grab active:cursor-grabbing
-      hover:-translate-y-2 hover:shadow-xl hover:!rotate-0 hover:z-30 transition-all duration-200 ease-out ${className}`}
-    style={{ transform: `rotate(${rotation}deg)` }}
-  />
+  <div className="relative group/photo">
+    <img
+      src={src}
+      alt={alt}
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.effectAllowed = "move";
+        onDragStart(src, groupId);
+      }}
+      className={`w-28 h-36 object-cover rounded-lg shadow-md ring-2 ring-white cursor-grab active:cursor-grabbing
+        hover:-translate-y-2 hover:shadow-xl hover:!rotate-0 hover:z-30 transition-all duration-200 ease-out ${className}`}
+      style={{ transform: `rotate(${rotation}deg)` }}
+    />
+    {onDelete && (
+      <button
+        onClick={(e) => { e.stopPropagation(); onDelete(); }}
+        className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center
+          opacity-0 group-hover/photo:opacity-100 transition-opacity duration-200 z-40 shadow-md hover:scale-110"
+      >
+        <X className="w-3.5 h-3.5" />
+      </button>
+    )}
+  </div>
 );
 
 /** Editable zone title */
@@ -77,7 +91,7 @@ const EditableTitle = ({
   if (!editing) {
     return (
       <button
-        className="group/edit flex items-center gap-1.5 text-lg font-semibold tracking-tight text-foreground truncate"
+        className="group/edit flex items-center gap-1.5 text-lg font-semibold tracking-tight text-foreground truncate w-full"
         onClick={() => {
           setEditing(true);
           setDraft(value);
@@ -85,7 +99,7 @@ const EditableTitle = ({
         }}
       >
         <span className="truncate">{value}</span>
-        <Pencil className="w-3.5 h-3.5 opacity-0 group-hover/edit:opacity-40 transition-opacity" />
+        <Pencil className="w-3.5 h-3.5 opacity-0 group-hover/edit:opacity-40 transition-opacity flex-shrink-0" />
       </button>
     );
   }
@@ -93,7 +107,7 @@ const EditableTitle = ({
   return (
     <form
       onSubmit={(e) => { e.preventDefault(); commit(); }}
-      className="flex items-center gap-1.5"
+      className="flex items-center gap-1.5 w-full"
     >
       <input
         ref={inputRef}
@@ -103,7 +117,7 @@ const EditableTitle = ({
         className="text-lg font-semibold tracking-tight text-foreground bg-transparent border-b border-foreground/20 outline-none w-full"
         autoFocus
       />
-      <button type="submit" className="text-foreground/40 hover:text-foreground">
+      <button type="submit" className="text-foreground/40 hover:text-foreground flex-shrink-0">
         <Check className="w-4 h-4" />
       </button>
     </form>
@@ -119,8 +133,13 @@ const PhotoWall = ({
   onContinue,
 }: PhotoWallProps) => {
   const [dragOverTarget, setDragOverTarget] = useState<string | null>(null);
+  const [newItemNaming, setNewItemNaming] = useState(false);
+  const [newItemName, setNewItemName] = useState("");
+  const newItemInputRef = useRef<HTMLInputElement>(null);
   const dragData = useRef<{ photo: string; sourceId: string | null } | null>(null);
 
+  // Show all groups (including empty ones so user can drag into them or delete)
+  const allGroups = groups;
   const visibleGroups = groups.filter((g) => g.photos.length > 0);
   const totalValue = pricingData.reduce((sum, p) => sum + p.recommended, 0);
   const totalPhotos = groups.reduce((s, g) => s + g.photos.length, 0) + ungroupedPhotos.length;
@@ -146,7 +165,6 @@ const PhotoWall = ({
 
     const { photo, sourceId } = data;
 
-    // Remove from source
     if (sourceId) {
       setGroups((prev) =>
         prev.map((g) =>
@@ -157,7 +175,6 @@ const PhotoWall = ({
       setUngroupedPhotos((prev) => prev.filter((p) => p !== photo));
     }
 
-    // Add to target
     if (targetGroupId === "ungrouped") {
       setUngroupedPhotos((prev) => [...prev, photo]);
     } else {
@@ -214,8 +231,51 @@ const PhotoWall = ({
     );
   };
 
-  // Determine grid class based on item count (including +New Item zone)
-  const itemCount = visibleGroups.length;
+  const deleteGroup = (groupId: string) => {
+    const group = groups.find((g) => g.id === groupId);
+    if (group && group.photos.length > 0) {
+      setUngroupedPhotos((prev) => [...prev, ...group.photos]);
+    }
+    setGroups((prev) => prev.filter((g) => g.id !== groupId));
+  };
+
+  const deletePhoto = (groupId: string, photo: string) => {
+    setGroups((prev) => {
+      const updated = prev.map((g) =>
+        g.id === groupId ? { ...g, photos: g.photos.filter((p) => p !== photo) } : g
+      );
+      // Remove empty groups automatically
+      return updated.filter((g) => g.photos.length > 0 || g.title !== "Untitled Item");
+    });
+  };
+
+  const deleteUngroupedPhoto = (photo: string) => {
+    setUngroupedPhotos((prev) => prev.filter((p) => p !== photo));
+  };
+
+  const createNewItem = () => {
+    const name = newItemName.trim() || "Untitled Item";
+    const newId = `group-${Date.now()}`;
+    setGroups((prev) => [
+      ...prev,
+      {
+        id: newId,
+        title: name,
+        category: "Other",
+        condition: "Good",
+        size: "",
+        description: "",
+        photos: [],
+        confirmed: false,
+        rejected: false,
+        editedFields: new Set(),
+      },
+    ]);
+    setNewItemNaming(false);
+    setNewItemName("");
+  };
+
+  const itemCount = allGroups.length;
   const getGridClass = () => {
     if (itemCount >= 7) return "flex overflow-x-auto snap-x snap-mandatory gap-6 pb-4";
     if (itemCount <= 1) return "grid grid-cols-2 gap-6";
@@ -223,14 +283,14 @@ const PhotoWall = ({
     if (itemCount === 3) return "grid grid-cols-3 gap-6";
     if (itemCount === 4) return "grid grid-cols-2 gap-6";
     if (itemCount === 5) return "grid grid-cols-3 gap-6";
-    return "grid grid-cols-3 gap-6"; // 6
+    return "grid grid-cols-3 gap-6";
   };
 
   const isScrollLayout = itemCount >= 7;
 
   return (
     <div className="pb-24">
-      {/* Header — on cream, above the tablecloth */}
+      {/* Header */}
       <div className="px-4 md:px-8 lg:px-16 pt-2 pb-4">
         <div className="flex items-end justify-between">
           <div>
@@ -261,69 +321,101 @@ const PhotoWall = ({
       >
         {/* Zone grid */}
         <div className={getGridClass()}>
-          {visibleGroups.map((group, gi) => {
+          {allGroups.map((group, gi) => {
             const zoneColor = ZONE_COLORS[gi % ZONE_COLORS.length];
             const pricing = pricingData.find((p) => p.groupId === group.id);
             const isDragOver = dragOverTarget === group.id;
             const photosToShow = group.photos.slice(0, 4);
             const extraCount = group.photos.length - 4;
+            const frameRotation = FRAME_ROTATIONS[gi % FRAME_ROTATIONS.length];
 
             return (
               <div
                 key={group.id}
-                className={`rounded-2xl p-6 transition-all duration-200 ease-out relative min-h-[220px]
-                  ${isDragOver ? `${zoneColor.hover} border-2 border-dashed ${zoneColor.border}` : zoneColor.bg}
+                className={`group/zone relative transition-transform duration-200 ease-out
                   ${isScrollLayout ? "min-w-[300px] snap-center flex-shrink-0" : ""}
                 `}
-                onDragOver={(e) => onDragOver(e, group.id)}
-                onDragLeave={onDragLeave}
-                onDrop={(e) => onDrop(e, group.id)}
-                onDragEnd={onDragEnd}
+                style={{ transform: `rotate(${frameRotation}deg)` }}
               >
-                {/* Zone header */}
-                <div className="flex items-center justify-between mb-3">
-                  <EditableTitle
-                    value={group.title}
-                    onChange={(v) => updateGroupTitle(group.id, v)}
-                  />
+                {/* 3D cartoon frame */}
+                <div
+                  className={`rounded-2xl p-6 relative min-h-[220px] transition-all duration-200 ease-out
+                    ${isDragOver ? `${zoneColor.hover} border-2 border-dashed ${zoneColor.border}` : zoneColor.bg}
+                  `}
+                  style={{
+                    border: isDragOver ? undefined : "4px solid hsl(30, 40%, 65%)",
+                    boxShadow: "4px 6px 0 hsl(30, 30%, 50%), inset 0 0 0 2px hsl(35, 35%, 80%)",
+                  }}
+                  onDragOver={(e) => onDragOver(e, group.id)}
+                  onDragLeave={onDragLeave}
+                  onDrop={(e) => onDrop(e, group.id)}
+                  onDragEnd={onDragEnd}
+                >
+                  {/* Delete stack button */}
+                  <button
+                    onClick={() => deleteGroup(group.id)}
+                    className="absolute top-3 right-3 w-7 h-7 rounded-full bg-card text-muted-foreground flex items-center justify-center
+                      opacity-0 group-hover/zone:opacity-100 transition-opacity duration-200 z-40 shadow-sm
+                      hover:bg-destructive hover:text-destructive-foreground"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+
+                  {/* Title — full width, one line */}
+                  <div className="mb-2 pr-8">
+                    <EditableTitle
+                      value={group.title}
+                      onChange={(v) => updateGroupTitle(group.id, v)}
+                    />
+                  </div>
+
+                  <div className="border-b border-foreground/[0.08] mb-3" />
+
+                  {/* Price below separator */}
                   {pricing && (
-                    <span className="text-lg font-bold text-primary ml-2 whitespace-nowrap">
+                    <span className="text-base font-bold text-primary block mb-3">
                       ~${pricing.recommended}
                     </span>
                   )}
-                </div>
-                <div className="border-b border-foreground/[0.08] mb-4" />
 
-                {/* Photos scattered in zone */}
-                <div className="flex items-center justify-center min-h-[140px]">
-                  <div className="flex items-center" style={{ marginLeft: photosToShow.length > 1 ? '16px' : '0' }}>
-                    {photosToShow.map((photo, pi) => (
-                      <div
-                        key={pi}
-                        className="relative"
-                        style={{
-                          marginLeft: pi > 0 ? "-20px" : "0",
-                          zIndex: pi + 1,
-                        }}
-                      >
-                        <TablePhoto
-                          src={photo}
-                          alt={`${group.title} ${pi + 1}`}
-                          rotation={getRotation(pi)}
-                          groupId={group.id}
-                          onDragStart={onDragStartHandler}
-                        />
+                  {/* Photos scattered in zone */}
+                  {group.photos.length > 0 ? (
+                    <div className="flex items-center justify-center min-h-[140px]">
+                      <div className="flex items-center" style={{ marginLeft: photosToShow.length > 1 ? '16px' : '0' }}>
+                        {photosToShow.map((photo, pi) => (
+                          <div
+                            key={pi}
+                            className="relative"
+                            style={{
+                              marginLeft: pi > 0 ? "-20px" : "0",
+                              zIndex: pi + 1,
+                            }}
+                          >
+                            <TablePhoto
+                              src={photo}
+                              alt={`${group.title} ${pi + 1}`}
+                              rotation={getRotation(pi)}
+                              groupId={group.id}
+                              onDragStart={onDragStartHandler}
+                              onDelete={() => deletePhoto(group.id, photo)}
+                            />
+                          </div>
+                        ))}
+                        {extraCount > 0 && (
+                          <div
+                            className={`w-28 h-36 rounded-lg ${zoneColor.bg} flex items-center justify-center text-sm font-medium text-foreground/60 shadow-md ring-2 ring-white`}
+                            style={{ marginLeft: "-20px", zIndex: photosToShow.length + 1 }}
+                          >
+                            +{extraCount} more
+                          </div>
+                        )}
                       </div>
-                    ))}
-                    {extraCount > 0 && (
-                      <div
-                        className={`w-28 h-36 rounded-lg ${zoneColor.bg} flex items-center justify-center text-sm font-medium text-foreground/60 shadow-md ring-2 ring-white`}
-                        style={{ marginLeft: "-20px", zIndex: photosToShow.length + 1 }}
-                      >
-                        +{extraCount} more
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center min-h-[140px] text-sm text-muted-foreground">
+                      Drag photos here
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -332,7 +424,7 @@ const PhotoWall = ({
           {/* + New Item zone */}
           <div
             className={`rounded-2xl border-2 border-dashed transition-all duration-200 ease-out flex items-center justify-center min-h-[220px]
-              ${dragOverTarget === "new-item" ? "border-amber-400 bg-amber-500/10" : "border-gray-300"}
+              ${dragOverTarget === "new-item" ? "border-amber-400 bg-amber-500/10" : "border-muted-foreground/20"}
               ${isScrollLayout ? "min-w-[300px] snap-center flex-shrink-0" : ""}
             `}
             onDragOver={(e) => onDragOver(e, "new-item")}
@@ -340,28 +432,58 @@ const PhotoWall = ({
             onDrop={onDropNewItem}
             onDragEnd={onDragEnd}
             onClick={() => {
-              const newId = `group-${Date.now()}`;
-              setGroups((prev) => [
-                ...prev,
-                {
-                  id: newId,
-                  title: "Untitled Item",
-                  category: "Other",
-                  condition: "Good",
-                  size: "",
-                  description: "",
-                  photos: [],
-                  confirmed: false,
-                  rejected: false,
-                  editedFields: new Set(),
-                },
-              ]);
+              if (!newItemNaming) {
+                setNewItemNaming(true);
+                setNewItemName("");
+                setTimeout(() => newItemInputRef.current?.focus(), 0);
+              }
             }}
           >
-            <div className="flex flex-col items-center gap-2 text-muted-foreground">
-              <Plus className="w-8 h-8 text-gray-400" />
-              <span className="text-sm">New Item</span>
-            </div>
+            {newItemNaming ? (
+              <form
+                onSubmit={(e) => { e.preventDefault(); createNewItem(); }}
+                className="flex flex-col items-center gap-3 p-4 w-full"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <span className="text-sm font-medium text-foreground">Name this item</span>
+                <input
+                  ref={newItemInputRef}
+                  value={newItemName}
+                  onChange={(e) => setNewItemName(e.target.value)}
+                  onBlur={() => {
+                    if (!newItemName.trim()) {
+                      setNewItemNaming(false);
+                    }
+                  }}
+                  placeholder="e.g. Vintage Lamp"
+                  className="text-base text-center font-semibold text-foreground bg-transparent border-b-2 border-primary/30 outline-none w-full max-w-[200px] focus:border-primary transition-colors"
+                  autoFocus
+                />
+                <div className="flex gap-2">
+                  <Button
+                    type="submit"
+                    size="sm"
+                    className="rounded-lg px-4 h-8 text-sm"
+                  >
+                    <Check className="w-3.5 h-3.5 mr-1" /> Create
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="rounded-lg px-3 h-8 text-sm"
+                    onClick={() => { setNewItemNaming(false); setNewItemName(""); }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            ) : (
+              <div className="flex flex-col items-center gap-2 text-muted-foreground">
+                <Plus className="w-8 h-8" />
+                <span className="text-sm">New Item</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -388,6 +510,7 @@ const PhotoWall = ({
                     rotation={getRotation(i)}
                     groupId={null}
                     onDragStart={onDragStartHandler}
+                    onDelete={() => deleteUngroupedPhoto(photo)}
                     className="animate-pulse ring-amber-300"
                   />
                 </div>
