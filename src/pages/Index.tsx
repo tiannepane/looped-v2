@@ -1,24 +1,19 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import {
-  Camera,
-  Sparkles,
-  Share2,
-  Star,
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
-} from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import heroCouch from "@/assets/hero-couch.png";
 
-// Calendar animation data
+// Calendar animation data — 8 life events
 const CALENDAR_MOMENTS = [
   { month: "MARCH", color: "hsl(350, 40%, 70%)", circleDay: 14, label: "Moving Day" },
-  { month: "APRIL", color: "hsl(150, 25%, 55%)", circleDay: 8, label: "Spring Cleaning" },
-  { month: "JUNE", color: "hsl(45, 70%, 60%)", circleDay: 21, label: "Fresh Start" },
-  { month: "SEPTEMBER", color: "hsl(260, 30%, 75%)", circleDay: 3, label: "New Chapter" },
-  { month: "JANUARY", color: "hsl(210, 40%, 80%)", circleDay: 17, label: "New City" },
+  { month: "MAY", color: "hsl(150, 25%, 55%)", circleDay: 22, label: "Graduation" },
+  { month: "JULY", color: "hsl(45, 70%, 60%)", circleDay: 1, label: "First Apartment" },
+  { month: "APRIL", color: "hsl(260, 30%, 75%)", circleDay: 8, label: "Spring Cleaning" },
+  { month: "OCTOBER", color: "hsl(210, 40%, 80%)", circleDay: 17, label: "The Breakup" },
+  { month: "AUGUST", color: "hsl(35, 80%, 55%)", circleDay: 12, label: "New Job New City" },
+  { month: "JUNE", color: "hsl(155, 40%, 45%)", circleDay: 21, label: "Wedding" },
+  { month: "SEPTEMBER", color: "hsl(215, 15%, 55%)", circleDay: 3, label: "Back to School" },
 ];
 
 const CALENDAR_DAYS = [
@@ -79,11 +74,9 @@ const CalendarAnimation = () => {
       <div
         className={`transition-opacity duration-500 ${fading ? "opacity-0" : "opacity-100"}`}
       >
-        {/* Color strip */}
         <div className="h-12 rounded-t-2xl" style={{ background: moment.color }} />
 
         <div className="px-8 pt-5 pb-8">
-          {/* Month */}
           <p
             className="text-sm uppercase tracking-[0.2em] font-medium text-center mb-4"
             style={{ color: moment.color }}
@@ -91,7 +84,6 @@ const CalendarAnimation = () => {
             {moment.month}
           </p>
 
-          {/* Day-of-week headers */}
           <div className="grid grid-cols-7 gap-y-2.5 mb-2">
             {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
               <span key={i} className="text-xs text-muted-foreground/50 text-center font-medium">
@@ -100,7 +92,6 @@ const CalendarAnimation = () => {
             ))}
           </div>
 
-          {/* Calendar grid */}
           <div className="grid grid-cols-7 gap-y-2.5">
             {CALENDAR_DAYS.flat().map((day, i) => {
               const isCircled = day === moment.circleDay;
@@ -110,45 +101,13 @@ const CalendarAnimation = () => {
                     {day ?? ""}
                   </span>
                   {isCircled && phase !== "circle" && (
-                    <svg
-                      className="absolute inset-0 w-full h-full"
-                      viewBox="0 0 24 24"
-                    >
-                      <ellipse
-                        cx="12"
-                        cy="12"
-                        rx="10"
-                        ry="9"
-                        fill="none"
-                        stroke={moment.color}
-                        strokeWidth="1.5"
-                        strokeDasharray="60"
-                        strokeDashoffset="0"
-                        strokeLinecap="round"
-                        style={{ animation: "draw-circle 0.8s ease-out forwards" }}
-                        transform="rotate(-10 12 12)"
-                      />
+                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 24 24">
+                      <ellipse cx="12" cy="12" rx="10" ry="9" fill="none" stroke={moment.color} strokeWidth="1.5" strokeDasharray="60" strokeDashoffset="0" strokeLinecap="round" style={{ animation: "draw-circle 0.8s ease-out forwards" }} transform="rotate(-10 12 12)" />
                     </svg>
                   )}
                   {isCircled && phase === "circle" && (
-                    <svg
-                      className="absolute inset-0 w-full h-full"
-                      viewBox="0 0 24 24"
-                    >
-                      <ellipse
-                        cx="12"
-                        cy="12"
-                        rx="10"
-                        ry="9"
-                        fill="none"
-                        stroke={moment.color}
-                        strokeWidth="1.5"
-                        strokeDasharray="60"
-                        strokeDashoffset="60"
-                        strokeLinecap="round"
-                        style={{ animation: "draw-circle 0.8s ease-out forwards" }}
-                        transform="rotate(-10 12 12)"
-                      />
+                    <svg className="absolute inset-0 w-full h-full" viewBox="0 0 24 24">
+                      <ellipse cx="12" cy="12" rx="10" ry="9" fill="none" stroke={moment.color} strokeWidth="1.5" strokeDasharray="60" strokeDashoffset="60" strokeLinecap="round" style={{ animation: "draw-circle 0.8s ease-out forwards" }} transform="rotate(-10 12 12)" />
                     </svg>
                   )}
                 </div>
@@ -156,7 +115,6 @@ const CalendarAnimation = () => {
             })}
           </div>
 
-          {/* Typewriter label */}
           <div className="mt-5 h-12 flex items-center justify-center">
             <span
               className="text-3xl font-bold tracking-tight"
@@ -174,66 +132,23 @@ const CalendarAnimation = () => {
   );
 };
 
-const howItWorks = [
-  {
-    icon: Camera,
-    title: "Drop Your Photos",
-    subtitle: "Dump everything. Our AI sorts it out.",
-    color: "bg-sage/10",
-    iconColor: "text-sage",
-  },
-  {
-    icon: Sparkles,
-    title: "AI Does The Heavy Lifting",
-    subtitle: "Titles. Descriptions. Prices. Done in seconds.",
-    color: "bg-mustard/10",
-    iconColor: "text-mustard",
-  },
-  {
-    icon: Share2,
-    title: "Post Everywhere",
-    subtitle: "Facebook. Kijiji. Karrot. One click each.",
-    color: "bg-dusty-rose/10",
-    iconColor: "text-dusty-rose",
-  },
+// Checklist items
+const checklistItems = [
+  { title: "Drop your photos", subtitle: "Dump everything. Our AI sorts it out." },
+  { title: "AI does the heavy lifting", subtitle: "Titles. Descriptions. Prices. All generated in seconds." },
+  { title: "Post everywhere", subtitle: "Facebook Marketplace. Kijiji. Karrot. One click each." },
 ];
 
-const lifeMoments = [
-  {
-    emoji: "📦",
-    title: "The Big Move",
-    quote: "Sold $2,400 of furniture in 3 days before moving to my new place.",
-    attribution: "— every Toronto renter, eventually",
-    bg: "bg-dusty-rose/15",
-  },
-  {
-    emoji: "🌱",
-    title: "Spring Reset",
-    quote: "Cleared out 5 years of stuff I forgot I owned. Made $800.",
-    attribution: "— your future self will thank you",
-    bg: "bg-sage/15",
-  },
-  {
-    emoji: "💍",
-    title: "Starting Fresh",
-    quote: "Replaced everything from my bachelor pad. Funded half the new furniture.",
-    attribution: "— adulting, but make it profitable",
-    bg: "bg-mustard/15",
-  },
-  {
-    emoji: "💜",
-    title: "Fresh Start",
-    quote: "Turned memories into next month's rent. No regrets.",
-    attribution: "— closure has never been this productive",
-    bg: "bg-lavender/15",
-  },
-  {
-    emoji: "🎒",
-    title: "New City, New Room",
-    quote: "Furnished my dorm for half price. Sold what I outgrew.",
-    attribution: "— student budget, designer taste",
-    bg: "bg-soft-blue/20",
-  },
+// Life event cards for wave section
+const lifeEvents = [
+  { emoji: "📦", title: "The Big Move", quote: "Sold $2,400 of furniture in 3 days before moving to my new place.", attribution: "— every Toronto renter, eventually", above: true },
+  { emoji: "🎓", title: "Graduation", quote: "Finally upgrading from the dorm furniture era. Made $600 off stuff I bought freshman year.", attribution: "— time to adult", above: false },
+  { emoji: "🏠", title: "First Apartment", quote: "Bought secondhand, sold secondhand. The circle of Toronto renting.", attribution: "— your first IKEA trip hits different", above: true },
+  { emoji: "🌱", title: "Spring Cleaning", quote: "Cleared out 5 years of stuff I forgot I owned. Made $800.", attribution: "— your future self will thank you", above: false },
+  { emoji: "💔", title: "The Breakup", quote: "Turned memories into next month's rent. No regrets.", attribution: "— closure has never been this productive", above: true },
+  { emoji: "💼", title: "New Job, New City", quote: "Sold everything in Toronto. Starting fresh in Vancouver with cash in hand.", attribution: "— plot twist: you can't take the couch on the plane", above: false },
+  { emoji: "💍", title: "Wedding", quote: "Replaced everything from the bachelor pad. Funded half the new furniture.", attribution: "— adulting, but make it profitable", above: true },
+  { emoji: "🎒", title: "Back to School", quote: "Furnished my place for half price. Sold what I outgrew.", attribution: "— student budget, designer taste", above: false },
 ];
 
 /** Scroll-reveal hook using IntersectionObserver */
@@ -259,12 +174,76 @@ function useScrollReveal() {
   return ref;
 }
 
+/** Checklist animation hook */
+function useChecklistAnimation() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [checked, setChecked] = useState<boolean[]>([false, false, false]);
+  const [allDone, setAllDone] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Sequential check animations
+            setTimeout(() => setChecked(p => { const n = [...p]; n[0] = true; return n; }), 500);
+            setTimeout(() => setChecked(p => { const n = [...p]; n[1] = true; return n; }), 1500);
+            setTimeout(() => setChecked(p => { const n = [...p]; n[2] = true; return n; }), 2500);
+            setTimeout(() => setAllDone(true), 3200);
+            observer.disconnect();
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, checked, allDone };
+}
+
+/** Wave section visibility hook */
+function useWaveAnimation() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            observer.disconnect();
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return { ref, isVisible };
+}
+
 const Index = () => {
   const pageRef = useScrollReveal();
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const checklist = useChecklistAnimation();
+  const wave = useWaveAnimation();
+  const [sliderValue, setSliderValue] = useState(60); // 0-100 range mapped to $180-$450
 
-  const scrollCards = (dir: number) => {
-    scrollContainerRef.current?.scrollBy({ left: dir * 320, behavior: "smooth" });
+  const price = Math.round(180 + (sliderValue / 100) * 270);
+  const zone = sliderValue < 33 ? "quick" : sliderValue < 66 ? "average" : "patient";
+
+  const zoneComments: Record<string, string> = {
+    quick: "Priced to go fast. Expect messages within hours.",
+    average: "Right in the sweet spot. Should sell within a week.",
+    patient: "Top dollar. Might take a few weeks, but worth the wait.",
   };
 
   return (
@@ -279,10 +258,9 @@ const Index = () => {
         </Button>
       </nav>
 
-      {/* ===== SECTION 1: HERO ===== */}
+      {/* ===== HERO ===== */}
       <section className="relative flex items-center justify-center min-h-screen px-12">
         <div className="w-full max-w-[1800px] mx-auto flex items-center justify-between gap-8">
-          {/* Left: Typography */}
           <div className="flex-1 min-w-0">
             <h1
               className="font-black uppercase leading-[0.9] text-foreground"
@@ -299,18 +277,16 @@ const Index = () => {
                 className="bg-foreground text-background hover:bg-foreground/90 rounded-full px-10 py-4 h-auto text-lg font-bold hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
                 style={{ fontFamily: "'Gaegu', cursive" }}
               >
-                <Link to="/new">Start Selling</Link>
+                <Link to="/new">List Your First Item</Link>
               </Button>
             </div>
           </div>
 
-          {/* Right: Calendar animation */}
           <div className="hidden md:flex items-center justify-center flex-shrink-0">
             <CalendarAnimation />
           </div>
         </div>
 
-        {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2">
           <ChevronDown
             className="w-5 h-5 text-muted-foreground/40"
@@ -319,59 +295,90 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ===== SECTION 2: HOW IT WORKS ===== */}
+      {/* ===== SECTION 1: HOW IT WORKS — ANIMATED CHECKLIST ===== */}
       <section className="py-24 lg:py-32 px-8">
         <div className="max-w-5xl mx-auto">
-          <h2 className="scroll-reveal text-4xl lg:text-5xl font-black tracking-tight text-foreground text-center mb-16">
-            Three steps. <span className="wavy-underline">That's it.</span>
+          <h2 className="scroll-reveal text-4xl font-bold tracking-tight text-foreground text-center mb-16">
+            Three steps. That's it.
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {howItWorks.map((step, i) => (
-              <div
-                key={i}
-                className={`scroll-reveal ${step.color} rounded-2xl p-8 hover:scale-[1.02] transition-all duration-300 relative overflow-hidden`}
-                style={{ transitionDelay: `${i * 100}ms` }}
-              >
-                <Sparkles className={`absolute top-4 right-4 w-4 h-4 ${step.iconColor} opacity-20`} />
+          <div ref={checklist.ref} className="max-w-2xl mx-auto relative" style={{ transform: "rotate(-0.5deg)" }}>
+            {/* Tape */}
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-16 h-6 bg-mustard/40 rounded-sm z-10" style={{ transform: "rotate(-2deg)" }} />
 
-                <div className="w-14 h-14 rounded-xl bg-card flex items-center justify-center mb-5 shadow-sm">
-                  <step.icon className={`w-6 h-6 ${step.iconColor}`} />
+            <div className="bg-card rounded-xl shadow-xl p-10 space-y-8">
+              {checklistItems.map((item, i) => (
+                <div key={i} className="flex items-start gap-4">
+                  {/* Checkbox */}
+                  <div className="w-6 h-6 border-2 border-muted-foreground/40 rounded-sm flex-shrink-0 mt-0.5 relative">
+                    {checklist.checked[i] && (
+                      <svg className="absolute inset-0 w-full h-full p-0.5" viewBox="0 0 16 16">
+                        <path
+                          d="M3 8 L6.5 11.5 L13 4"
+                          fill="none"
+                          stroke="hsl(18, 60%, 50%)"
+                          strokeWidth="2.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="checklist-check-draw"
+                        />
+                      </svg>
+                    )}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="relative inline-block">
+                      <p className="text-xl font-semibold text-foreground">{item.title}</p>
+                      {checklist.checked[i] && (
+                        <div className="checklist-strike" />
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">{item.subtitle}</p>
+                  </div>
                 </div>
-                <h3 className="text-xl font-bold tracking-tight text-foreground mb-2">
-                  {step.title}
-                </h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {step.subtitle}
-                </p>
+              ))}
+
+              {/* "That's it" note */}
+              <div
+                className="transition-opacity duration-500 pt-2"
+                style={{ opacity: checklist.allDone ? 1 : 0 }}
+              >
+                <p className="text-sm italic text-muted-foreground">That's it. You're done.</p>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ===== SECTION 3: PRICING INTELLIGENCE ===== */}
+      {/* ===== SECTION 2: PRICING INTELLIGENCE ===== */}
       <section className="py-24 lg:py-32 px-8 bg-mustard/[0.06]">
         <div className="max-w-5xl mx-auto">
-          <h2 className="scroll-reveal text-4xl lg:text-5xl font-black tracking-tight text-foreground text-center mb-4">
-            We know what your stuff is <span className="wavy-underline">worth</span>
+          <h2 className="scroll-reveal text-4xl font-bold tracking-tight text-foreground text-center mb-4">
+            We know what your stuff is worth
           </h2>
           <p className="scroll-reveal text-base text-muted-foreground max-w-2xl mx-auto text-center mb-16">
             Our pricing engine learns from real sales in your neighborhood. The more people sell, the smarter it gets.
           </p>
 
           <div className="scroll-reveal relative flex items-center justify-center">
-            <div className="hidden lg:block absolute -left-4 top-8 bg-sage/15 text-sage rounded-full px-4 py-2 text-xs font-semibold shadow-sm rotate-[-3deg]">
-              14,000+ prices tracked
-            </div>
-            <div className="hidden lg:block absolute -right-4 top-16 bg-dusty-rose/15 text-dusty-rose rounded-full px-4 py-2 text-xs font-semibold shadow-sm rotate-2">
-              Updated with every sale
-            </div>
-            <div className="hidden lg:block absolute -left-8 bottom-8 bg-lavender/15 text-lavender rounded-full px-4 py-2 text-xs font-semibold shadow-sm rotate-1">
-              Postal code accurate
+            {/* Scattered sticky notes */}
+            <div className="hidden lg:block absolute -left-8 top-4 w-48 h-32 bg-dusty-rose/20 rounded-lg shadow-md p-4 flex items-center justify-center" style={{ transform: "rotate(-2deg)" }}>
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-12 h-4 bg-mustard/50 rounded-sm" style={{ transform: "rotate(3deg)" }} />
+              <p className="text-lg font-bold text-foreground text-center mt-2">14,000+<br /><span className="text-sm font-normal text-muted-foreground">prices tracked</span></p>
             </div>
 
-            <div className="bg-card rounded-2xl shadow-xl p-8 max-w-md w-full rotate-1 border border-border">
+            <div className="hidden lg:block absolute -right-4 top-12 w-48 h-32 bg-sage/20 rounded-lg shadow-md p-4 flex items-center justify-center" style={{ transform: "rotate(1deg)" }}>
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-12 h-4 bg-mustard/50 rounded-sm" style={{ transform: "rotate(-2deg)" }} />
+              <p className="text-lg font-bold text-foreground text-center mt-2">Updated<br /><span className="text-sm font-normal text-muted-foreground">with every sale</span></p>
+            </div>
+
+            <div className="hidden lg:block absolute -left-4 bottom-4 w-48 h-32 bg-mustard/20 rounded-lg shadow-md p-4 flex items-center justify-center" style={{ transform: "rotate(-1.5deg)" }}>
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-12 h-4 bg-mustard/50 rounded-sm" style={{ transform: "rotate(1deg)" }} />
+              <p className="text-lg font-bold text-foreground text-center mt-2">Postal code<br /><span className="text-sm font-normal text-muted-foreground">accurate</span></p>
+            </div>
+
+            {/* Center pricing card */}
+            <div className="bg-card rounded-2xl shadow-xl p-8 max-w-md w-full border border-border relative z-10" style={{ transform: "rotate(1deg)" }}>
               <div className="flex items-start gap-4 mb-6">
                 <img
                   src={heroCouch}
@@ -388,106 +395,112 @@ const Index = () => {
                 </div>
               </div>
 
-              <p className="text-5xl font-black text-primary mb-4">$340</p>
+              <p className="text-5xl font-black text-primary mb-6">${price}</p>
 
-              <div className="mb-2">
-                <div className="h-2 bg-accent rounded-full overflow-hidden">
-                  <div className="h-full bg-primary/30 rounded-full relative" style={{ width: "100%" }}>
-                    <div
-                      className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-primary rounded-full border-2 border-card shadow-sm"
-                      style={{ left: "60%" }}
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-between mt-1.5">
-                  <span className="text-[10px] text-muted-foreground">$180</span>
-                  <span className="text-[10px] text-muted-foreground">$450</span>
+              {/* Interactive slider */}
+              <div className="mb-4">
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={sliderValue}
+                  onChange={(e) => setSliderValue(Number(e.target.value))}
+                  className="pricing-slider w-full"
+                />
+                <div className="flex justify-between mt-2">
+                  <span className="text-xs text-muted-foreground">Quick Sale<br /><span className="font-semibold">$180</span></span>
+                  <span className="text-xs text-muted-foreground text-center">Market Average<br /><span className="font-semibold">$315</span></span>
+                  <span className="text-xs text-muted-foreground text-right">Patient<br /><span className="font-semibold">$450</span></span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 mt-4">
-                <span className="bg-sage/15 text-sage text-xs font-semibold px-2.5 py-1 rounded-full">
-                  92% confidence
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  avg 4 days to sell
-                </span>
+              {/* Zone comment with crossfade */}
+              <div className="h-10 flex items-center">
+                <p key={zone} className="text-sm italic text-muted-foreground animate-fade-in">
+                  {zoneComments[zone]}
+                </p>
               </div>
+
+              <p className="text-sm text-muted-foreground mt-4">
+                92% confidence · Based on 10 sold items in Toronto
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ===== SECTION 4: LIFE TRANSITIONS ===== */}
-      <section className="py-24 lg:py-32 px-8">
+      {/* ===== SECTION 3: LIFE TRANSITIONS — WAVE ===== */}
+      <section className="py-24 lg:py-32 px-8 overflow-hidden">
         <div className="max-w-6xl mx-auto">
-          <h2 className="scroll-reveal text-4xl lg:text-5xl font-black tracking-tight text-foreground text-center mb-4">
-            For every <span className="wavy-underline">season</span> of your life
+          <h2 className="scroll-reveal text-4xl font-bold tracking-tight text-foreground text-center mb-4">
+            For every season of your life
           </h2>
-          <p className="scroll-reveal text-base text-muted-foreground text-center mb-12">
+          <p className="scroll-reveal text-base text-muted-foreground text-center mb-16">
             Life changes. Your stuff should keep up.
           </p>
 
-          <div className="relative">
-            <button
-              onClick={() => scrollCards(-1)}
-              className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-card shadow-md flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+          <div ref={wave.ref} className="relative" style={{ minHeight: "520px" }}>
+            {/* SVG wave */}
+            <svg
+              className="absolute top-1/2 left-0 w-full -translate-y-1/2"
+              viewBox="0 0 1200 200"
+              preserveAspectRatio="none"
+              style={{ height: "200px" }}
             >
-              <ChevronLeft className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => scrollCards(1)}
-              className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-card shadow-md flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </button>
+              <path
+                d="M0 100 Q75 40 150 100 T300 100 Q375 40 450 100 T600 100 Q675 40 750 100 T900 100 Q975 40 1050 100 T1200 100"
+                fill="none"
+                stroke="hsl(18, 60%, 50%)"
+                strokeWidth="2"
+                strokeOpacity="0.3"
+                strokeDasharray="2400"
+                strokeDashoffset={wave.isVisible ? "0" : "2400"}
+                style={{ transition: "stroke-dashoffset 2s ease-out" }}
+              />
+            </svg>
 
-            <div
-              ref={scrollContainerRef}
-              className="flex gap-6 overflow-x-auto snap-scroll pb-4 px-2 -mx-2 scrollbar-hide"
-              style={{ scrollbarWidth: "none" }}
-            >
-              {lifeMoments.map((moment, i) => (
-                <div
-                  key={i}
-                  className={`scroll-reveal flex-shrink-0 w-72 ${moment.bg} rounded-2xl p-8 flex flex-col justify-between relative overflow-hidden hover:scale-[1.02] transition-all duration-300`}
-                  style={{ aspectRatio: "3/4", transitionDelay: `${i * 80}ms` }}
-                >
-                  {i % 2 === 0 && <div className="tape-effect" />}
-
-                  <div>
-                    <span className="text-4xl block mb-4">{moment.emoji}</span>
-                    <h3 className="text-2xl font-bold tracking-tight text-foreground mb-3">
-                      {moment.title}
-                    </h3>
+            {/* Cards along the wave */}
+            <div className="relative flex items-center justify-between gap-2" style={{ minHeight: "520px" }}>
+              {lifeEvents.map((event, i) => {
+                const rotations = [-1, 2, -1.5, 2, -1, 2, -1.5, 1.5];
+                return (
+                  <div
+                    key={i}
+                    className={`w-56 min-h-[180px] bg-card rounded-2xl shadow-md p-5 flex-shrink-0 hover:-translate-y-2 hover:shadow-lg transition-all duration-300`}
+                    style={{
+                      transform: `rotate(${rotations[i]}deg) translateY(${event.above ? "-60px" : "60px"})`,
+                      opacity: wave.isVisible ? 1 : 0,
+                      transition: `opacity 0.5s ease-out ${0.25 + i * 0.2}s, transform 0.5s ease-out ${0.25 + i * 0.2}s, box-shadow 0.3s ease`,
+                      ...(wave.isVisible ? {} : { transform: `rotate(${rotations[i]}deg) translateY(${event.above ? "-40px" : "80px"})` }),
+                    }}
+                  >
+                    <span className="text-2xl block mb-2">{event.emoji}</span>
+                    <h3 className="text-base font-bold tracking-tight text-foreground mb-2">{event.title}</h3>
+                    <p className="text-sm text-muted-foreground italic leading-relaxed mb-2">"{event.quote}"</p>
+                    <p className="text-xs text-muted-foreground">{event.attribution}</p>
                   </div>
-
-                  <div>
-                    <p className="text-sm text-foreground/80 leading-relaxed italic mb-3">
-                      "{moment.quote}"
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {moment.attribution}
-                    </p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ===== SECTION 5: FOOTER CTA ===== */}
+      {/* ===== SECTION 4: FOOTER CTA ===== */}
       <section className="py-24 lg:py-32 px-8">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="scroll-reveal text-4xl md:text-5xl lg:text-6xl font-black tracking-tight text-foreground mb-3">
+          <h2 className="scroll-reveal text-4xl font-bold tracking-tight text-foreground mb-3">
             Your stuff is worth more than you think.
           </h2>
-          <p className="scroll-reveal text-xl text-muted-foreground italic mb-10">
+          <p className="scroll-reveal text-lg text-muted-foreground italic mb-10">
             Especially that couch.
           </p>
           <div className="scroll-reveal">
-            <Button asChild size="lg" className="rounded-xl text-base px-12 h-14 shadow-lg hover:shadow-xl transition-shadow">
+            <Button
+              asChild
+              className="bg-foreground text-background hover:bg-foreground/90 rounded-full px-10 py-4 h-auto text-lg font-bold hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
+              style={{ fontFamily: "'Gaegu', cursive" }}
+            >
               <Link to="/new">Start Selling</Link>
             </Button>
           </div>
@@ -497,16 +510,11 @@ const Index = () => {
       {/* Footer */}
       <footer className="py-10 px-8 border-t border-border/50">
         <div className="max-w-5xl mx-auto flex flex-col items-center gap-3">
-          <span className="text-sm font-black tracking-tight text-foreground">
-            looped
-          </span>
-          <span className="text-xs text-muted-foreground">
-            Made in Toronto 🇨🇦
-          </span>
+          <span className="text-sm font-black tracking-tight text-foreground">looped</span>
+          <span className="text-xs text-muted-foreground">Looped · Made in Toronto 🇨🇦</span>
           <div className="flex gap-4 text-xs text-muted-foreground">
             <a href="#" className="hover:text-foreground transition-colors">FAQ</a>
-            <a href="#" className="hover:text-foreground transition-colors">Twitter</a>
-            <a href="#" className="hover:text-foreground transition-colors">Instagram</a>
+            <a href="#" className="hover:text-foreground transition-colors">Feedback</a>
           </div>
         </div>
       </footer>
