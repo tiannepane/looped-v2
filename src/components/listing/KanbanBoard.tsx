@@ -1,8 +1,15 @@
-import { useState } from "react";
-import { Check, ChevronDown, ChevronUp, Plus, X } from "lucide-react";
+import { useState, useRef } from "react";
+import { Check, ChevronDown, ChevronUp, X, ThumbsUp, ThumbsDown, SkipForward } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export interface ItemGroup {
   id: string;
@@ -13,8 +20,30 @@ export interface ItemGroup {
   description: string;
   photos: string[];
   confirmed: boolean;
+  rejected: boolean;
   editedFields: Set<string>;
 }
+
+const CATEGORIES = [
+  "Furniture",
+  "Electronics",
+  "Clothing & Shoes",
+  "Home Decor",
+  "Sports & Outdoors",
+  "Books & Media",
+  "Toys & Games",
+  "Kitchen & Dining",
+  "Tools & Hardware",
+  "Other",
+];
+
+const CONDITIONS = [
+  "New",
+  "Like New",
+  "Good",
+  "Fair",
+  "Poor",
+];
 
 interface KanbanBoardProps {
   groups: ItemGroup[];
@@ -25,19 +54,19 @@ interface KanbanBoardProps {
 }
 
 const KanbanBoard = ({ groups, setGroups, ungroupedPhotos, setUngroupedPhotos, onContinue }: KanbanBoardProps) => {
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
-  const [draggedPhoto, setDraggedPhoto] = useState<{ photo: string; fromGroup: string | null; index: number } | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
+  const [dragX, setDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const startX = useRef(0);
+  const cardRef = useRef<HTMLDivElement>(null);
 
+  const reviewableGroups = groups.filter((g) => !g.confirmed && !g.rejected);
   const confirmedCount = groups.filter((g) => g.confirmed).length;
-  const allConfirmed = groups.length > 0 && confirmedCount === groups.length;
-
-  const toggleExpanded = (id: string) => {
-    setExpandedGroups((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
-    });
-  };
+  const rejectedCount = groups.filter((g) => g.rejected).length;
+  const reviewedCount = confirmedCount + rejectedCount;
+  const allReviewed = groups.length > 0 && reviewableGroups.length === 0;
+  const currentGroup = reviewableGroups[0];
 
   const handleFieldChange = (groupId: string, field: string, value: string) => {
     setGroups((prev) =>
@@ -49,258 +78,285 @@ const KanbanBoard = ({ groups, setGroups, ungroupedPhotos, setUngroupedPhotos, o
     );
   };
 
-  const confirmGroup = (id: string) => {
-    setGroups((prev) => prev.map((g) => (g.id === id ? { ...g, confirmed: !g.confirmed } : g)));
+  const animateSwipe = (direction: "left" | "right", callback: () => void) => {
+    setSwipeDirection(direction);
+    setTimeout(() => {
+      callback();
+      setSwipeDirection(null);
+      setDragX(0);
+    }, 300);
   };
 
-  const deleteGroup = (id: string) => {
-    const group = groups.find((g) => g.id === id);
-    if (group) {
-      setUngroupedPhotos((prev) => [...prev, ...group.photos]);
-      setGroups((prev) => prev.filter((g) => g.id !== id));
-    }
+  const approveItem = () => {
+    if (!currentGroup) return;
+    animateSwipe("right", () => {
+      setGroups((prev) => prev.map((g) => (g.id === currentGroup.id ? { ...g, confirmed: true } : g)));
+    });
   };
 
-  const addNewGroup = () => {
-    const newGroup: ItemGroup = {
-      id: `group-${Date.now()}`,
-      title: "New Item",
-      category: "",
-      condition: "",
-      size: "",
-      description: "",
-      photos: [],
-      confirmed: false,
-      editedFields: new Set(),
-    };
-    setGroups((prev) => [...prev, newGroup]);
+  const rejectItem = () => {
+    if (!currentGroup) return;
+    animateSwipe("left", () => {
+      setGroups((prev) => prev.map((g) => (g.id === currentGroup.id ? { ...g, rejected: true } : g)));
+      setUngroupedPhotos((prev) => [...prev, ...currentGroup.photos]);
+    });
   };
 
-  // Drag & drop handlers
-  const onPhotoDragStart = (photo: string, fromGroup: string | null, index: number) => {
-    setDraggedPhoto({ photo, fromGroup, index });
+  // Touch / mouse drag handlers
+  const onPointerDown = (e: React.PointerEvent) => {
+    startX.current = e.clientX;
+    setIsDragging(true);
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
   };
 
-  const onGroupDrop = (targetGroupId: string) => {
-    if (!draggedPhoto) return;
-    const { photo, fromGroup, index } = draggedPhoto;
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!isDragging) return;
+    setDragX(e.clientX - startX.current);
+  };
 
-    if (fromGroup === targetGroupId) return;
-
-    // Remove from source
-    if (fromGroup === null) {
-      setUngroupedPhotos((prev) => prev.filter((_, i) => i !== index));
+  const onPointerUp = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    if (dragX > 100) {
+      approveItem();
+    } else if (dragX < -100) {
+      rejectItem();
     } else {
-      setGroups((prev) =>
-        prev.map((g) =>
-          g.id === fromGroup ? { ...g, photos: g.photos.filter((_, i) => i !== index) } : g
-        )
-      );
+      setDragX(0);
     }
-
-    // Add to target
-    setGroups((prev) =>
-      prev.map((g) => (g.id === targetGroupId ? { ...g, photos: [...g.photos, photo] } : g))
-    );
-
-    setDraggedPhoto(null);
   };
 
-  const onUngroupedDrop = () => {
-    if (!draggedPhoto) return;
-    const { photo, fromGroup, index } = draggedPhoto;
-
-    if (fromGroup === null) return;
-
-    setGroups((prev) =>
-      prev.map((g) =>
-        g.id === fromGroup ? { ...g, photos: g.photos.filter((_, i) => i !== index) } : g
-      )
-    );
-    setUngroupedPhotos((prev) => [...prev, photo]);
-    setDraggedPhoto(null);
+  const getCardTransform = () => {
+    if (swipeDirection === "right") return "translateX(120%) rotate(15deg)";
+    if (swipeDirection === "left") return "translateX(-120%) rotate(-15deg)";
+    if (isDragging || dragX !== 0) {
+      const rotation = dragX * 0.05;
+      return `translateX(${dragX}px) rotate(${rotation}deg)`;
+    }
+    return "translateX(0) rotate(0)";
   };
+
+  const getOverlayOpacity = () => Math.min(Math.abs(dragX) / 150, 1);
 
   return (
     <div>
-      <h2 className="text-3xl font-black tracking-tight text-foreground mb-2">Review & Group Items</h2>
+      <h2 className="text-3xl font-black tracking-tight text-foreground mb-2">Review Items</h2>
       <p className="text-muted-foreground mb-6">
-        AI grouped your photos by item. Drag photos between groups to fix mistakes.
+        Swipe right to approve, left to skip. Edit details before approving.
       </p>
 
       {/* Progress bar */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-medium text-foreground">
-            {confirmedCount} of {groups.length} items reviewed
+            {reviewedCount} of {groups.length} items reviewed
           </span>
           <span className="text-xs text-muted-foreground">
-            {allConfirmed ? "All set!" : "Confirm each item to continue"}
+            {allReviewed ? "All done!" : `${confirmedCount} approved · ${rejectedCount} skipped`}
           </span>
         </div>
         <div className="h-2 bg-accent rounded-full overflow-hidden">
           <div
             className="h-full bg-primary rounded-full transition-all duration-500"
-            style={{ width: `${groups.length > 0 ? (confirmedCount / groups.length) * 100 : 0}%` }}
+            style={{ width: `${groups.length > 0 ? (reviewedCount / groups.length) * 100 : 0}%` }}
           />
         </div>
       </div>
 
-      {/* Ungrouped photos */}
-      {ungroupedPhotos.length > 0 && (
-        <div
-          className="mb-6 p-4 border-2 border-dashed border-border rounded-lg"
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={onUngroupedDrop}
-        >
-          <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">
-            Ungrouped Photos ({ungroupedPhotos.length})
-          </p>
-          <div className="flex gap-2 flex-wrap">
-            {ungroupedPhotos.map((photo, i) => (
-              <img
-                key={i}
-                src={photo}
-                alt={`Ungrouped ${i + 1}`}
-                className="w-16 h-16 object-cover rounded-lg border border-border cursor-grab active:cursor-grabbing"
-                draggable
-                onDragStart={() => onPhotoDragStart(photo, null, i)}
-              />
-            ))}
-          </div>
-        </div>
-      )}
+      {/* Card stack */}
+      {!allReviewed && currentGroup ? (
+        <div className="flex flex-col items-center mb-8">
+          <div className="relative w-full max-w-md h-[520px]">
+            {/* Background cards for stack effect */}
+            {reviewableGroups.length > 2 && (
+              <div className="absolute inset-0 mx-4 mt-4 bg-card border border-border rounded-xl opacity-40" />
+            )}
+            {reviewableGroups.length > 1 && (
+              <div className="absolute inset-0 mx-2 mt-2 bg-card border border-border rounded-xl opacity-60" />
+            )}
 
-      {/* Kanban columns */}
-      <div className="flex gap-4 overflow-x-auto pb-4 mb-8">
-        {groups.map((group) => (
-          <div
-            key={group.id}
-            className={`min-w-[280px] max-w-[320px] flex-shrink-0 border rounded-lg bg-card transition-all duration-300 ${
-              group.confirmed ? "border-success/50" : "border-border"
-            }`}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={() => onGroupDrop(group.id)}
-          >
-            {/* Column header */}
-            <div className="p-4 border-b border-border">
-              <div className="flex items-center gap-2 mb-2">
-                <Input
-                  value={group.title}
-                  onChange={(e) => handleFieldChange(group.id, "title", e.target.value)}
-                  className="text-sm font-semibold border-none p-0 h-auto bg-transparent focus-visible:ring-0"
-                />
-                <button
-                  onClick={() => confirmGroup(group.id)}
-                  className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 transition-colors duration-200 ${
-                    group.confirmed
-                      ? "bg-success text-success-foreground"
-                      : "bg-accent text-muted-foreground hover:bg-primary hover:text-primary-foreground"
-                  }`}
+            {/* Active card */}
+            <div
+              ref={cardRef}
+              className="absolute inset-0 bg-card border border-border rounded-xl shadow-lg overflow-hidden select-none touch-none"
+              style={{
+                transform: getCardTransform(),
+                transition: swipeDirection || (!isDragging && dragX === 0) ? "transform 0.3s ease-out" : "none",
+                cursor: isDragging ? "grabbing" : "grab",
+              }}
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerUp}
+            >
+              {/* Swipe overlays */}
+              {dragX > 0 && (
+                <div
+                  className="absolute inset-0 bg-success/20 z-10 flex items-center justify-center pointer-events-none rounded-xl"
+                  style={{ opacity: getOverlayOpacity() }}
                 >
-                  <Check className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  onClick={() => deleteGroup(group.id)}
-                  className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-muted-foreground hover:bg-destructive hover:text-destructive-foreground transition-colors duration-200"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-              <span className="text-xs text-muted-foreground">
-                {group.photos.length} photo{group.photos.length !== 1 ? "s" : ""}
-              </span>
-            </div>
-
-            {/* Photos */}
-            <div className="p-3 flex gap-2 flex-wrap min-h-[80px]">
-              {group.photos.map((photo, i) => (
-                <img
-                  key={i}
-                  src={photo}
-                  alt={`${group.title} ${i + 1}`}
-                  className="w-14 h-14 object-cover rounded-lg border border-border cursor-grab active:cursor-grabbing"
-                  draggable
-                  onDragStart={() => onPhotoDragStart(photo, group.id, i)}
-                />
-              ))}
-              {group.photos.length === 0 && (
-                <p className="text-xs text-muted-foreground w-full text-center py-4">
-                  Drop photos here
-                </p>
-              )}
-            </div>
-
-            {/* Expandable details */}
-            <div className="px-4 pb-4">
-              <button
-                onClick={() => toggleExpanded(group.id)}
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors duration-200 mb-2"
-              >
-                {expandedGroups.has(group.id) ? (
-                  <ChevronUp className="w-3 h-3" />
-                ) : (
-                  <ChevronDown className="w-3 h-3" />
-                )}
-                Details
-              </button>
-
-              {expandedGroups.has(group.id) && (
-                <div className="flex flex-col gap-3">
-                  {(["category", "condition", "size"] as const).map((field) => (
-                    <div key={field}>
-                      <div className="flex items-center gap-1.5 mb-1">
-                        <label className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                          {field}
-                        </label>
-                        {!group.editedFields.has(field) && (
-                          <span className="text-[9px] bg-primary/10 text-primary px-1 py-0.5 rounded font-bold">
-                            AI
-                          </span>
-                        )}
-                      </div>
-                      <Input
-                        value={group[field]}
-                        onChange={(e) => handleFieldChange(group.id, field, e.target.value)}
-                        className="text-xs h-8 bg-background"
-                      />
-                    </div>
-                  ))}
-                  <div>
-                    <div className="flex items-center gap-1.5 mb-1">
-                      <label className="text-[10px] uppercase tracking-widest text-muted-foreground">
-                        Description
-                      </label>
-                      {!group.editedFields.has("description") && (
-                        <span className="text-[9px] bg-primary/10 text-primary px-1 py-0.5 rounded font-bold">
-                          AI
-                        </span>
-                      )}
-                    </div>
-                    <Textarea
-                      value={group.description}
-                      onChange={(e) => handleFieldChange(group.id, "description", e.target.value)}
-                      rows={3}
-                      className="text-xs bg-background"
-                    />
+                  <div className="bg-success text-success-foreground px-6 py-3 rounded-lg text-xl font-black tracking-wide rotate-[-15deg] border-4 border-success">
+                    APPROVE
                   </div>
                 </div>
               )}
+              {dragX < 0 && (
+                <div
+                  className="absolute inset-0 bg-destructive/20 z-10 flex items-center justify-center pointer-events-none rounded-xl"
+                  style={{ opacity: getOverlayOpacity() }}
+                >
+                  <div className="bg-destructive text-destructive-foreground px-6 py-3 rounded-lg text-xl font-black tracking-wide rotate-[15deg] border-4 border-destructive">
+                    SKIP
+                  </div>
+                </div>
+              )}
+
+              {/* Card content */}
+              <div className="p-5 h-full overflow-y-auto">
+                {/* Photos */}
+                <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                  {currentGroup.photos.map((photo, i) => (
+                    <img
+                      key={i}
+                      src={photo}
+                      alt={`${currentGroup.title} ${i + 1}`}
+                      className="w-20 h-20 object-cover rounded-lg border border-border flex-shrink-0"
+                      draggable={false}
+                    />
+                  ))}
+                  {currentGroup.photos.length === 0 && (
+                    <div className="w-full h-20 bg-accent rounded-lg flex items-center justify-center text-xs text-muted-foreground">
+                      No photos
+                    </div>
+                  )}
+                </div>
+
+                {/* Title */}
+                <Input
+                  value={currentGroup.title}
+                  onChange={(e) => handleFieldChange(currentGroup.id, "title", e.target.value)}
+                  className="text-lg font-bold border-none p-0 h-auto bg-transparent focus-visible:ring-0 mb-4"
+                  onPointerDown={(e) => e.stopPropagation()}
+                />
+
+                {/* Fields */}
+                <div className="flex flex-col gap-3">
+                  {/* Category */}
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Category</label>
+                      {!currentGroup.editedFields.has("category") && (
+                        <span className="text-[9px] bg-primary/10 text-primary px-1 py-0.5 rounded font-bold">AI</span>
+                      )}
+                    </div>
+                    <div onPointerDown={(e) => e.stopPropagation()}>
+                      <Select
+                        value={currentGroup.category}
+                        onValueChange={(v) => handleFieldChange(currentGroup.id, "category", v)}
+                      >
+                        <SelectTrigger className="text-sm h-9 bg-background">
+                          <SelectValue placeholder="Select category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CATEGORIES.map((c) => (
+                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Condition */}
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Condition</label>
+                      {!currentGroup.editedFields.has("condition") && (
+                        <span className="text-[9px] bg-primary/10 text-primary px-1 py-0.5 rounded font-bold">AI</span>
+                      )}
+                    </div>
+                    <div onPointerDown={(e) => e.stopPropagation()}>
+                      <Select
+                        value={currentGroup.condition}
+                        onValueChange={(v) => handleFieldChange(currentGroup.id, "condition", v)}
+                      >
+                        <SelectTrigger className="text-sm h-9 bg-background">
+                          <SelectValue placeholder="Select condition" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {CONDITIONS.map((c) => (
+                            <SelectItem key={c} value={c}>{c}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Size */}
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Size</label>
+                      {!currentGroup.editedFields.has("size") && (
+                        <span className="text-[9px] bg-primary/10 text-primary px-1 py-0.5 rounded font-bold">AI</span>
+                      )}
+                    </div>
+                    <Input
+                      value={currentGroup.size}
+                      onChange={(e) => handleFieldChange(currentGroup.id, "size", e.target.value)}
+                      className="text-sm h-9 bg-background"
+                      onPointerDown={(e) => e.stopPropagation()}
+                    />
+                  </div>
+
+                  {/* Description */}
+                  <div>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Description</label>
+                      {!currentGroup.editedFields.has("description") && (
+                        <span className="text-[9px] bg-primary/10 text-primary px-1 py-0.5 rounded font-bold">AI</span>
+                      )}
+                    </div>
+                    <Textarea
+                      value={currentGroup.description}
+                      onChange={(e) => handleFieldChange(currentGroup.id, "description", e.target.value)}
+                      rows={3}
+                      className="text-sm bg-background"
+                      onPointerDown={(e) => e.stopPropagation()}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        ))}
 
-        {/* Add new group button */}
-        <button
-          onClick={addNewGroup}
-          className="min-w-[120px] flex-shrink-0 border-2 border-dashed border-border rounded-lg flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary/50 hover:text-foreground transition-colors duration-300 py-10"
-        >
-          <Plus className="w-6 h-6" />
-          <span className="text-xs">New Group</span>
-        </button>
-      </div>
+          {/* Action buttons */}
+          <div className="flex items-center gap-6 mt-6">
+            <button
+              onClick={rejectItem}
+              className="w-14 h-14 rounded-full bg-card border-2 border-destructive text-destructive flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-all duration-200 shadow-md"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <button
+              onClick={approveItem}
+              className="w-16 h-16 rounded-full bg-success text-success-foreground flex items-center justify-center hover:scale-110 transition-all duration-200 shadow-lg"
+            >
+              <Check className="w-7 h-7" />
+            </button>
+          </div>
+        </div>
+      ) : (
+        /* Summary when all reviewed */
+        <div className="text-center py-12 mb-8">
+          <div className="w-16 h-16 rounded-full bg-success/10 text-success flex items-center justify-center mx-auto mb-4">
+            <Check className="w-8 h-8" />
+          </div>
+          <h3 className="text-xl font-bold text-foreground mb-2">All items reviewed!</h3>
+          <p className="text-muted-foreground mb-1">
+            {confirmedCount} approved · {rejectedCount} skipped
+          </p>
+        </div>
+      )}
 
-      <Button onClick={onContinue} size="lg" className="rounded-lg" disabled={!allConfirmed}>
+      <Button onClick={onContinue} size="lg" className="rounded-lg w-full max-w-md mx-auto block" disabled={!allReviewed || confirmedCount === 0}>
         Continue to Pricing
       </Button>
     </div>
