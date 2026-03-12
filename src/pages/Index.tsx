@@ -369,7 +369,7 @@ const Index = () => {
 
             <div className="hidden lg:block absolute -right-4 top-12 w-48 h-32 bg-sage/20 rounded-lg shadow-md p-4 flex items-center justify-center" style={{ transform: "rotate(1deg)" }}>
               <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-12 h-4 bg-mustard/50 rounded-sm" style={{ transform: "rotate(-2deg)" }} />
-              <p className="text-sm font-bold text-foreground text-center mt-2" style={{ fontFamily: "'Gaegu', cursive" }}>"Bullseye pricing. 95% accuracy on every list."</p>
+              <p className="text-xl font-bold text-foreground text-center mt-2" style={{ fontFamily: "'Gaegu', cursive" }}>"Bullseye pricing. 95% accuracy on every list."</p>
             </div>
 
             <div className="hidden lg:block absolute -left-4 bottom-4 w-48 h-32 bg-mustard/20 rounded-lg shadow-md p-4 flex items-center justify-center" style={{ transform: "rotate(-1.5deg)" }}>
