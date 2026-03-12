@@ -157,14 +157,14 @@ const CalendarAnimation = () => {
           </div>
 
           {/* Typewriter label */}
-          <div className="mt-4 h-7 flex items-center justify-center">
+          <div className="mt-5 h-12 flex items-center justify-center">
             <span
-              className="text-base font-semibold tracking-tight"
-              style={{ color: moment.color, fontFamily: "'Caveat', cursive" }}
+              className="text-3xl font-bold tracking-tight"
+              style={{ color: moment.color, fontFamily: "'Gaegu', cursive" }}
             >
               {moment.label.slice(0, typedChars)}
               {phase === "type" && (
-                <span className="inline-block w-[1px] h-3 ml-0.5 align-middle" style={{ background: moment.color, animation: "blink-cursor 0.6s step-end infinite" }} />
+                <span className="inline-block w-[2px] h-5 ml-0.5 align-middle" style={{ background: moment.color, animation: "blink-cursor 0.6s step-end infinite" }} />
               )}
             </span>
           </div>
@@ -274,7 +274,7 @@ const Index = () => {
         <Link to="/" className="text-xl font-black tracking-tight text-foreground">
           looped
         </Link>
-        <Button asChild variant="default" size="sm" className="rounded-lg">
+        <Button asChild size="sm" className="bg-foreground text-background hover:bg-foreground/90 rounded-full font-bold" style={{ fontFamily: "'Gaegu', cursive" }}>
           <Link to="/new">Start Selling</Link>
         </Button>
       </nav>
@@ -290,13 +290,14 @@ const Index = () => {
             >
               MAKE IT<br />COUNT
             </h1>
-            <p className="text-xl text-muted-foreground mt-6 max-w-lg" style={{ fontFamily: "'Caveat', cursive", fontSize: "1.6rem" }}>
+            <p className="text-muted-foreground mt-6 max-w-lg font-bold" style={{ fontFamily: "'Gaegu', cursive", fontSize: "2.4rem", lineHeight: 1.2 }}>
               Your stuff changes when your life does.
             </p>
             <div className="mt-10">
               <Button
                 asChild
-                className="rounded-lg px-10 py-4 h-auto text-base font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
+                className="bg-foreground text-background hover:bg-foreground/90 rounded-full px-10 py-4 h-auto text-lg font-bold hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
+                style={{ fontFamily: "'Gaegu', cursive" }}
               >
                 <Link to="/new">Start Selling</Link>
               </Button>
