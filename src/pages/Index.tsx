@@ -374,7 +374,7 @@ const Index = () => {
 
             <div className="hidden lg:block absolute -left-4 bottom-4 w-48 h-32 bg-mustard/20 rounded-lg shadow-md p-4 flex items-center justify-center" style={{ transform: "rotate(-1.5deg)" }}>
               <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-12 h-4 bg-mustard/50 rounded-sm" style={{ transform: "rotate(1deg)" }} />
-              <p className="text-sm font-bold text-foreground text-center mt-2" style={{ fontFamily: "'Gaegu', cursive" }}>"Always fresh. Updated with every local sale."</p>
+              <p className="text-xl font-bold text-foreground text-center mt-2" style={{ fontFamily: "'Gaegu', cursive" }}>"Always fresh. Updated with every local sale."</p>
             </div>
 
             {/* Center pricing card */}
