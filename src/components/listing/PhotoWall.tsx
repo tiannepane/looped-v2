@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Check, ChevronDown, X } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
+import { ChevronDown, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,16 +10,6 @@ import {
 import type { ItemGroup } from "./KanbanBoard";
 import type { ItemPricing } from "./BulkPricingStep";
 
-const GROUP_COLORS = [
-  { bg: "bg-amber-100", text: "text-amber-800" },
-  { bg: "bg-emerald-50", text: "text-emerald-800" },
-  { bg: "bg-slate-100", text: "text-slate-700" },
-  { bg: "bg-rose-50", text: "text-rose-700" },
-  { bg: "bg-violet-50", text: "text-violet-700" },
-];
-
-const UNGROUPED_COLOR = { bg: "bg-gray-100", text: "text-gray-500" };
-
 interface PhotoWallProps {
   groups: ItemGroup[];
   setGroups: React.Dispatch<React.SetStateAction<ItemGroup[]>>;
@@ -27,12 +17,6 @@ interface PhotoWallProps {
   setUngroupedPhotos: React.Dispatch<React.SetStateAction<string[]>>;
   pricingData: ItemPricing[];
   onContinue: () => void;
-}
-
-interface PhotoItem {
-  src: string;
-  groupId: string | null;
-  groupIndex: number;
 }
 
 const PhotoWall = ({
@@ -43,50 +27,39 @@ const PhotoWall = ({
   pricingData,
   onContinue,
 }: PhotoWallProps) => {
-  const [selectedPhotos, setSelectedPhotos] = useState<Set<string>>(new Set());
-  const [highlightedGroup, setHighlightedGroup] = useState<string | null>(null);
-
-  // Build flat photo list with group info
-  const allPhotos: PhotoItem[] = [];
-  groups.forEach((g, gi) => {
-    g.photos.forEach((src) => {
-      allPhotos.push({ src, groupId: g.id, groupIndex: gi });
-    });
-  });
-  ungroupedPhotos.forEach((src) => {
-    allPhotos.push({ src, groupId: null, groupIndex: -1 });
-  });
+  const [expandedStack, setExpandedStack] = useState<string | null>(null);
+  const expandedRef = useRef<HTMLDivElement>(null);
 
   const totalValue = pricingData.reduce((sum, p) => sum + p.recommended, 0);
   const ungroupedCount = ungroupedPhotos.length;
 
-  const getGroupColor = (groupIndex: number) =>
-    groupIndex >= 0 ? GROUP_COLORS[groupIndex % GROUP_COLORS.length] : UNGROUPED_COLOR;
+  // Close expanded stack on click outside
+  useEffect(() => {
+    if (!expandedStack) return;
+    const handler = (e: MouseEvent) => {
+      if (expandedRef.current && !expandedRef.current.contains(e.target as Node)) {
+        setExpandedStack(null);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [expandedStack]);
 
-  const getGroupLabel = (photo: PhotoItem) => {
-    if (photo.groupId === null) return "Ungrouped";
-    const group = groups.find((g) => g.id === photo.groupId);
-    const pricing = pricingData.find((p) => p.groupId === photo.groupId);
-    if (!group) return "Unknown";
-    return `${group.title}${pricing ? ` · $${pricing.recommended}` : ""}`;
-  };
-
-  const toggleSelect = (src: string) => {
-    setSelectedPhotos((prev) => {
-      const next = new Set(prev);
-      if (next.has(src)) next.delete(src);
-      else next.add(src);
-      return next;
-    });
-  };
-
-  const clearSelection = () => setSelectedPhotos(new Set());
-
-  const moveSelectedTo = (targetGroupId: string | "new") => {
-    const selected = Array.from(selectedPhotos);
+  const movePhoto = (photo: string, sourceGroupId: string | null, targetGroupId: string | "new" | "remove") => {
+    if (targetGroupId === "remove") {
+      // Move to ungrouped
+      if (sourceGroupId) {
+        setGroups((prev) =>
+          prev.map((g) =>
+            g.id === sourceGroupId ? { ...g, photos: g.photos.filter((p) => p !== photo) } : g
+          )
+        );
+      }
+      setUngroupedPhotos((prev) => [...prev, photo]);
+      return;
+    }
 
     if (targetGroupId === "new") {
-      // TODO: create new item group via AI or manual
       const newId = `group-${Date.now()}`;
       const newGroup: ItemGroup = {
         id: newId,
@@ -95,206 +68,282 @@ const PhotoWall = ({
         condition: "Good",
         size: "",
         description: "",
-        photos: selected,
+        photos: [photo],
         confirmed: false,
         rejected: false,
         editedFields: new Set(),
       };
-      setGroups((prev) => {
-        const updated = prev.map((g) => ({
-          ...g,
-          photos: g.photos.filter((p) => !selectedPhotos.has(p)),
-        }));
-        return [...updated, newGroup];
-      });
-    } else {
-      setGroups((prev) =>
-        prev.map((g) => {
-          const withoutSelected = g.photos.filter((p) => !selectedPhotos.has(p));
-          if (g.id === targetGroupId) {
-            return { ...g, photos: [...withoutSelected, ...selected.filter((s) => !g.photos.includes(s) || selectedPhotos.has(s))] };
-          }
-          return { ...g, photos: withoutSelected };
-        })
-      );
+      if (sourceGroupId) {
+        setGroups((prev) => [
+          ...prev.map((g) =>
+            g.id === sourceGroupId ? { ...g, photos: g.photos.filter((p) => p !== photo) } : g
+          ),
+          newGroup,
+        ]);
+      } else {
+        setUngroupedPhotos((prev) => prev.filter((p) => p !== photo));
+        setGroups((prev) => [...prev, newGroup]);
+      }
+      return;
     }
 
-    setUngroupedPhotos((prev) => prev.filter((p) => !selectedPhotos.has(p)));
-    clearSelection();
+    // Move between groups
+    if (sourceGroupId) {
+      setGroups((prev) =>
+        prev.map((g) => {
+          if (g.id === sourceGroupId) return { ...g, photos: g.photos.filter((p) => p !== photo) };
+          if (g.id === targetGroupId) return { ...g, photos: [...g.photos, photo] };
+          return g;
+        })
+      );
+    } else {
+      setUngroupedPhotos((prev) => prev.filter((p) => p !== photo));
+      setGroups((prev) =>
+        prev.map((g) => (g.id === targetGroupId ? { ...g, photos: [...g.photos, photo] } : g))
+      );
+    }
   };
 
-  const isPhotoHighlighted = (photo: PhotoItem) => {
-    if (!highlightedGroup) return true;
-    if (highlightedGroup === "ungrouped") return photo.groupId === null;
-    return photo.groupId === highlightedGroup;
+  const createNewGroup = () => {
+    const newId = `group-${Date.now()}`;
+    const newGroup: ItemGroup = {
+      id: newId,
+      title: "New Item",
+      category: "Other",
+      condition: "Good",
+      size: "",
+      description: "",
+      photos: [],
+      confirmed: false,
+      rejected: false,
+      editedFields: new Set(),
+    };
+    setGroups((prev) => [...prev, newGroup]);
   };
+
+  const MoveDropdown = ({
+    photo,
+    sourceGroupId,
+  }: {
+    photo: string;
+    sourceGroupId: string | null;
+  }) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
+          Move to… <ChevronDown className="w-3 h-3" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start">
+        {groups
+          .filter((g) => g.id !== sourceGroupId)
+          .map((g) => (
+            <DropdownMenuItem key={g.id} onClick={() => movePhoto(photo, sourceGroupId, g.id)}>
+              {g.title}
+            </DropdownMenuItem>
+          ))}
+        <DropdownMenuItem onClick={() => movePhoto(photo, sourceGroupId, "new")}>
+          + New item
+        </DropdownMenuItem>
+        {sourceGroupId && (
+          <DropdownMenuItem onClick={() => movePhoto(photo, sourceGroupId, "remove")}>
+            Remove from group
+          </DropdownMenuItem>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
 
   return (
-    <div className="pb-32">
+    <div className="px-4 md:px-8 lg:px-16 py-12 pb-32">
       {/* Header */}
-      <div className="flex items-start justify-between mb-8">
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight text-foreground">
-            We found {groups.length} items worth{" "}
-            <span className="text-primary">${totalValue.toLocaleString()}</span>{" "}
-            in your {allPhotos.length} photos
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Drag photos between groups to fix anything.
-          </p>
-        </div>
-        <span className="text-sm text-muted-foreground whitespace-nowrap mt-1">
-          {groups.length} items{ungroupedCount > 0 && ` · ${ungroupedCount} ungrouped`}
-        </span>
-      </div>
+      <h2 className="text-3xl font-bold tracking-tight text-foreground">
+        We found {groups.length} items worth{" "}
+        <span className="text-primary">${totalValue.toLocaleString()}</span>
+      </h2>
 
-      {/* Group pills */}
-      <div className="flex flex-wrap gap-2 mb-6">
-        <button
-          onClick={() => setHighlightedGroup(null)}
-          className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all ${
-            !highlightedGroup
-              ? "bg-foreground text-background"
-              : "bg-accent text-muted-foreground hover:bg-accent/80"
-          }`}
-        >
-          All
-        </button>
-        {groups.map((g, i) => {
-          const color = GROUP_COLORS[i % GROUP_COLORS.length];
-          const pricing = pricingData.find((p) => p.groupId === g.id);
-          return (
-            <button
-              key={g.id}
-              onClick={() => setHighlightedGroup(highlightedGroup === g.id ? null : g.id)}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all flex items-center gap-1.5 ${
-                highlightedGroup === g.id
-                  ? `${color.bg} ${color.text} ring-2 ring-primary/30`
-                  : `${color.bg} ${color.text} hover:ring-1 hover:ring-border`
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full ${color.bg} border border-current opacity-60`} />
-              {g.title}
-              {pricing && <span className="opacity-70">· ${pricing.recommended}</span>}
-              <span className="opacity-50">({g.photos.length})</span>
-            </button>
-          );
-        })}
-        {ungroupedCount > 0 && (
-          <button
-            onClick={() => setHighlightedGroup(highlightedGroup === "ungrouped" ? null : "ungrouped")}
-            className={`rounded-full px-3 py-1.5 text-xs font-medium transition-all flex items-center gap-1.5 ${
-              highlightedGroup === "ungrouped"
-                ? "bg-gray-100 text-gray-500 ring-2 ring-primary/30"
-                : "bg-gray-100 text-gray-500 hover:ring-1 hover:ring-border"
-            }`}
-          >
-            <span className="w-2 h-2 rounded-full bg-gray-300" />
-            Ungrouped ({ungroupedCount})
-          </button>
-        )}
-      </div>
+      {/* Spacer */}
+      <div className="h-12" />
 
-      {/* Masonry photo grid */}
-      <div className="columns-2 md:columns-3 lg:columns-4 gap-3">
-        {allPhotos.map((photo, i) => {
-          const color = getGroupColor(photo.groupIndex);
-          const isSelected = selectedPhotos.has(photo.src);
-          const dimmed = !isPhotoHighlighted(photo);
+      {/* Stacks grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-12">
+        {groups.map((group, gi) => {
+          const pricing = pricingData.find((p) => p.groupId === group.id);
+          const isExpanded = expandedStack === group.id;
+          const cover = group.photos[0];
+          const peek1 = group.photos[1];
+          const peek2 = group.photos[2];
+
+          if (isExpanded) {
+            return (
+              <div
+                key={group.id}
+                ref={expandedRef}
+                className="col-span-full bg-card border border-border rounded-2xl p-8 animate-fade-in"
+              >
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-semibold tracking-tight text-foreground">
+                    {group.title}
+                  </h3>
+                  <button
+                    onClick={() => setExpandedStack(null)}
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="flex gap-4 overflow-x-auto pb-4">
+                  {group.photos.map((photo, i) => (
+                    <div key={i} className="flex-shrink-0 flex flex-col items-center gap-2">
+                      <img
+                        src={photo}
+                        alt={`${group.title} ${i + 1}`}
+                        className="w-40 h-40 rounded-lg object-cover shadow-sm"
+                      />
+                      <MoveDropdown photo={photo} sourceGroupId={group.id} />
+                    </div>
+                  ))}
+                  {group.photos.length === 0 && (
+                    <p className="text-sm text-muted-foreground py-8">
+                      No photos in this group yet.
+                    </p>
+                  )}
+                </div>
+              </div>
+            );
+          }
 
           return (
             <div
-              key={`${photo.src}-${i}`}
-              className={`relative break-inside-avoid mb-3 group cursor-pointer transition-all duration-200 ${
-                dimmed ? "opacity-30 scale-[0.98]" : "hover:scale-[1.02] hover:shadow-md"
-              }`}
-              onClick={() => toggleSelect(photo.src)}
+              key={group.id}
+              className="group cursor-pointer hover:-translate-y-1 transition-all duration-300"
+              onClick={() => setExpandedStack(group.id)}
             >
-              <img
-                src={photo.src}
-                alt=""
-                className={`w-full rounded-lg shadow-sm object-cover transition-all duration-200 ${
-                  isSelected ? "ring-3 ring-primary" : ""
-                }`}
-              />
-
-              {/* Selection checkmark */}
-              {isSelected && (
-                <div className="absolute top-2 right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center shadow-md">
-                  <Check className="w-3.5 h-3.5 text-primary-foreground" />
-                </div>
-              )}
-
-              {/* Group label overlay */}
-              <div
-                className={`absolute bottom-2 left-2 rounded-full px-3 py-1 text-xs font-medium ${color.bg} ${color.text} shadow-sm`}
-              >
-                {getGroupLabel(photo)}
+              {/* Photo stack */}
+              <div className="relative" style={{ aspectRatio: "3/4" }}>
+                {/* Third peek photo */}
+                {peek2 && (
+                  <img
+                    src={peek2}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover rounded-xl shadow-md transition-all duration-300"
+                    style={{
+                      transform: "translate(16px, 16px) rotate(-3deg) scale(0.9)",
+                      zIndex: 1,
+                    }}
+                  />
+                )}
+                {/* Second peek photo */}
+                {peek1 && (
+                  <img
+                    src={peek1}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover rounded-xl shadow-md transition-all duration-300"
+                    style={{
+                      transform: "translate(8px, 8px) rotate(2deg) scale(0.95)",
+                      zIndex: 2,
+                    }}
+                  />
+                )}
+                {/* Cover photo */}
+                {cover ? (
+                  <img
+                    src={cover}
+                    alt={group.title}
+                    className="relative w-full h-full object-cover rounded-xl shadow-sm group-hover:shadow-lg transition-all duration-300"
+                    style={{ zIndex: 3 }}
+                  />
+                ) : (
+                  <div
+                    className="relative w-full h-full rounded-xl bg-accent/50 flex items-center justify-center"
+                    style={{ zIndex: 3 }}
+                  >
+                    <span className="text-sm text-muted-foreground">No photos</span>
+                  </div>
+                )}
               </div>
+
+              {/* Info below stack */}
+              <div className="mt-3 flex items-start justify-between gap-2">
+                <p className="text-lg font-semibold tracking-tight text-foreground truncate">
+                  {group.title}
+                </p>
+                {pricing && (
+                  <span className="text-xl font-bold text-primary flex-shrink-0">
+                    ${pricing.recommended}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs uppercase tracking-widest text-muted-foreground mt-0.5">
+                {group.photos.length} photo{group.photos.length !== 1 ? "s" : ""}
+              </p>
             </div>
           );
         })}
+
+        {/* New item placeholder card */}
+        <div
+          className="cursor-pointer hover:-translate-y-1 transition-all duration-300 group"
+          onClick={createNewGroup}
+        >
+          <div
+            className="w-full rounded-xl border-2 border-dashed border-border flex items-center justify-center group-hover:border-primary/40 transition-colors duration-300"
+            style={{ aspectRatio: "3/4" }}
+          >
+            <div className="flex flex-col items-center gap-2 text-muted-foreground group-hover:text-foreground transition-colors duration-300">
+              <Plus className="w-6 h-6" />
+              <span className="text-sm font-medium">New Item</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Floating action bar */}
-      {selectedPhotos.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-card shadow-lg rounded-xl px-6 py-3 flex items-center gap-4 border border-border">
+      {/* Ungrouped section */}
+      {ungroupedCount > 0 && (
+        <div className="mt-16 pt-10 border-t border-border/50">
+          <h3 className="text-sm uppercase tracking-widest text-muted-foreground mb-6">
+            Ungrouped
+          </h3>
+          <div className="flex gap-4 overflow-x-auto pb-2">
+            {ungroupedPhotos.map((photo, i) => (
+              <div key={i} className="flex-shrink-0 flex flex-col items-center gap-2">
+                <img
+                  src={photo}
+                  alt={`Ungrouped ${i + 1}`}
+                  className="w-24 h-24 rounded-lg object-cover shadow-sm"
+                />
+                <MoveDropdown photo={photo} sourceGroupId={null} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Sticky bottom bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-card/80 backdrop-blur-sm border-t border-border/50 py-4 px-4 md:px-8 lg:px-16">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
           <span className="text-sm font-medium text-foreground">
-            {selectedPhotos.size} photo{selectedPhotos.size !== 1 ? "s" : ""} selected
+            {groups.length} items · ${totalValue.toLocaleString()} total
           </span>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-1.5">
-                Move to… <ChevronDown className="w-3.5 h-3.5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="center">
-              {groups.map((g) => (
-                <DropdownMenuItem key={g.id} onClick={() => moveSelectedTo(g.id)}>
-                  {g.title}
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuItem onClick={() => moveSelectedTo("new")}>
-                + New item
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          <button
-            onClick={clearSelection}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-
-      {/* Bottom CTA */}
-      {selectedPhotos.size === 0 && (
-        <div className="fixed bottom-6 right-8 z-40">
-          {ungroupedCount > 0 ? (
-            <div className="text-right">
-              <Button
-                disabled
-                className="rounded-xl px-8 py-3 h-12 text-base font-bold opacity-50"
-              >
-                Review Details
-              </Button>
-              <p className="text-xs text-muted-foreground mt-1.5">
-                Assign all photos to continue
-              </p>
-            </div>
-          ) : (
-            <Button
-              onClick={onContinue}
-              className="rounded-xl px-8 py-3 h-12 text-base font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg"
-            >
-              Review Details
-            </Button>
+          {ungroupedCount > 0 && (
+            <span className="text-sm text-amber-600 font-medium">
+              {ungroupedCount} photo{ungroupedCount !== 1 ? "s" : ""} need grouping
+            </span>
           )}
+
+          <Button
+            onClick={onContinue}
+            disabled={ungroupedCount > 0}
+            className={`rounded-lg px-8 py-3 h-11 font-semibold transition-all ${
+              ungroupedCount > 0 ? "opacity-50" : "hover:shadow-md"
+            }`}
+          >
+            Review Details
+          </Button>
         </div>
-      )}
+      </div>
     </div>
   );
 };
