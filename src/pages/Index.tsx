@@ -85,7 +85,7 @@ const CalendarAnimation = () => {
         <div className="px-8 pt-5 pb-8">
           {/* Month */}
           <p
-            className="text-[11px] uppercase tracking-[0.2em] font-medium text-center mb-3"
+            className="text-sm uppercase tracking-[0.2em] font-medium text-center mb-4"
             style={{ color: moment.color }}
           >
             {moment.month}
