@@ -290,13 +290,14 @@ const Index = () => {
             >
               MAKE IT<br />COUNT
             </h1>
-            <p className="text-xl text-muted-foreground mt-6 max-w-lg" style={{ fontFamily: "'Caveat', cursive", fontSize: "1.6rem" }}>
+            <p className="text-muted-foreground mt-6 max-w-lg font-bold" style={{ fontFamily: "'Gaegu', cursive", fontSize: "2.4rem", lineHeight: 1.2 }}>
               Your stuff changes when your life does.
             </p>
             <div className="mt-10">
               <Button
                 asChild
-                className="rounded-lg px-10 py-4 h-auto text-base font-semibold hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
+                className="bg-foreground text-background hover:bg-foreground/90 rounded-full px-10 py-4 h-auto text-lg font-bold hover:shadow-lg hover:scale-[1.02] transition-all duration-300"
+                style={{ fontFamily: "'Gaegu', cursive" }}
               >
                 <Link to="/new">Start Selling</Link>
               </Button>
