@@ -66,7 +66,10 @@
   body {
     @apply text-foreground antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background: linear-gradient(180deg, hsl(40, 35%, 97%) 0%, hsl(35, 30%, 94%) 100%);
+    background-color: hsl(38, 25%, 93%);
+    background-image:
+      /* Paper fiber texture */
+      url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.12'/%3E%3C/svg%3E");
     background-attachment: fixed;
     min-height: 100vh;
   }
@@ -78,9 +81,9 @@
     inset: 0;
     z-index: 0;
     pointer-events: none;
-    background-image: radial-gradient(circle, hsl(20, 10%, 70%) 1px, transparent 1px);
-    background-size: 24px 24px;
-    opacity: 0.3;
+    background-image: radial-gradient(circle, hsl(20, 8%, 60%) 1.2px, transparent 1.2px);
+    background-size: 22px 22px;
+    opacity: 0.45;
   }
 
   /* Ensure all content sits above grain */
