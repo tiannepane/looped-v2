@@ -94,7 +94,6 @@ const CrossPostingHub = ({ groups, pricingData, onComplete }: CrossPostingHubPro
         {groups.map((group, i) => {
           const pricing = pricingData.find((p) => p.groupId === group.id);
           const isSelected = i === selectedItemIndex;
-          const rotation = POLAROID_ROTATIONS[i % POLAROID_ROTATIONS.length];
 
           return (
             <button
@@ -103,7 +102,6 @@ const CrossPostingHub = ({ groups, pricingData, onComplete }: CrossPostingHubPro
               className={`flex-shrink-0 bg-white p-1.5 pb-8 rounded-sm transition-all duration-300 cursor-pointer relative
                 ${isSelected ? "scale-110 shadow-xl z-10" : "shadow-md hover:-translate-y-1 hover:shadow-lg"}
               `}
-              style={{ transform: `rotate(${isSelected ? 0 : rotation}deg) ${isSelected ? "scale(1.1)" : ""}` }}
             >
               {group.photos[0] ? (
                 <img src={group.photos[0]} alt={group.title} className="w-24 h-24 object-cover" />
