@@ -87,7 +87,7 @@ const CrossPostingHub = ({ groups, pricingData, onComplete }: CrossPostingHubPro
               Auto-fill your listings on Facebook and Kijiji. No more copy-pasting.
             </p>
           </div>
-          <span className="px-3 py-1 text-xs font-bold rounded-full bg-primary/10 text-primary flex-shrink-0">
+          <span className="px-3 py-1 text-xs font-bold rounded-full bg-foreground/10 text-foreground flex-shrink-0">
             Coming Soon
           </span>
           <button
@@ -334,7 +334,7 @@ const CrossPostingHub = ({ groups, pricingData, onComplete }: CrossPostingHubPro
         </label>
       </div>
 
-      <Button onClick={onComplete} className="w-full rounded-lg" size="lg" disabled={!allDone}>
+      <Button onClick={onComplete} className="w-full rounded-full bg-foreground text-background hover:bg-foreground/90 font-bold" style={{ fontFamily: "'Gaegu', cursive" }} size="lg" disabled={!allDone}>
         Complete
       </Button>
     </div>

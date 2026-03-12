@@ -463,7 +463,7 @@ const PhotoWall = ({
                   <Button
                     type="submit"
                     size="sm"
-                    className="rounded-lg px-4 h-8 text-sm"
+                    className="rounded-full px-4 h-8 text-sm bg-foreground text-background hover:bg-foreground/90"
                   >
                     <Check className="w-3.5 h-3.5 mr-1" /> Create
                   </Button>
@@ -536,9 +536,10 @@ const PhotoWall = ({
           <Button
             onClick={onContinue}
             disabled={ungroupedCount > 0}
-            className={`rounded-lg px-8 py-3 h-11 font-semibold text-base transition-all ${
+            className={`rounded-full px-8 py-3 h-11 font-bold text-base bg-foreground text-background hover:bg-foreground/90 transition-all ${
               ungroupedCount > 0 ? "opacity-50" : "hover:shadow-md"
             }`}
+            style={{ fontFamily: "'Gaegu', cursive" }}
           >
             Review Details
           </Button>

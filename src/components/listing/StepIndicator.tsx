@@ -13,14 +13,14 @@ const StepIndicator = ({ currentStep, totalSteps }: StepIndicatorProps) => {
           <div
             className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-colors duration-300 ${
               currentStep >= s
-                ? "bg-primary text-primary-foreground"
+                ? "bg-foreground text-background"
                 : "bg-accent text-muted-foreground"
             }`}
           >
             {currentStep > s ? <Check className="w-4 h-4" /> : s}
           </div>
           {s < totalSteps && (
-            <div className={`w-12 h-px ${currentStep > s ? "bg-primary" : "bg-border"}`} />
+            <div className={`w-12 h-px ${currentStep > s ? "bg-foreground" : "bg-border"}`} />
           )}
         </div>
       ))}

@@ -299,7 +299,8 @@ const DetailsReview = ({
           </p>
           <Button
             onClick={onComplete}
-            className="rounded-xl px-8 h-11 text-base font-bold bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg gap-2"
+            className="rounded-full px-8 h-11 text-base font-bold bg-foreground text-background hover:bg-foreground/90 shadow-lg gap-2"
+            style={{ fontFamily: "'Gaegu', cursive" }}
           >
             Post to Platforms <ArrowRight className="w-4 h-4" />
           </Button>
