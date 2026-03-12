@@ -354,7 +354,8 @@ const DetailsReview = ({
             </span>
           </p>
           <Button
-            onClick={onComplete}
+            onClick={handleComplete}
+            disabled={!allPostalCodesValid}
             className="rounded-full px-10 h-12 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 gap-2 transition-all"
             style={{
               fontFamily: "'Gaegu', cursive",
