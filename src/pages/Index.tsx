@@ -429,8 +429,8 @@ const Index = () => {
         </div>
       </section>
 
-      {/* ===== SECTION 3: LIFE TRANSITIONS — WAVE ===== */}
-      <section className="py-24 lg:py-32 px-8 overflow-hidden">
+      {/* ===== SECTION 3: LIFE TRANSITIONS — STICKY NOTES ===== */}
+      <section className="py-24 lg:py-32 px-8">
         <div className="max-w-6xl mx-auto">
           <h2 className="scroll-reveal text-4xl font-bold tracking-tight text-foreground text-center mb-4">
             For every season of your life
@@ -439,49 +439,32 @@ const Index = () => {
             Life changes. Your stuff should keep up.
           </p>
 
-          <div ref={wave.ref} className="relative" style={{ minHeight: "520px" }}>
-            {/* SVG wave */}
-            <svg
-              className="absolute top-1/2 left-0 w-full -translate-y-1/2"
-              viewBox="0 0 1200 200"
-              preserveAspectRatio="none"
-              style={{ height: "200px" }}
-            >
-              <path
-                d="M0 100 Q75 40 150 100 T300 100 Q375 40 450 100 T600 100 Q675 40 750 100 T900 100 Q975 40 1050 100 T1200 100"
-                fill="none"
-                stroke="hsl(18, 60%, 50%)"
-                strokeWidth="2"
-                strokeOpacity="0.3"
-                strokeDasharray="2400"
-                strokeDashoffset={wave.isVisible ? "0" : "2400"}
-                style={{ transition: "stroke-dashoffset 2s ease-out" }}
-              />
-            </svg>
-
-            {/* Cards along the wave */}
-            <div className="relative flex items-center justify-between gap-2" style={{ minHeight: "520px" }}>
-              {lifeEvents.map((event, i) => {
-                const rotations = [-1, 2, -1.5, 2, -1, 2, -1.5, 1.5];
-                return (
+          <div ref={wave.ref} className="relative flex flex-wrap justify-center gap-x-6 gap-y-10 max-w-5xl mx-auto">
+            {lifeEvents.map((event, i) => {
+              const rotations = [-3, 2.5, -1.5, 3, -2, 1.5, -2.5, 2];
+              const offsets = ["mt-0", "mt-8", "mt-2", "mt-10", "mt-4", "mt-6", "mt-1", "mt-9"];
+              return (
+                <div
+                  key={i}
+                  className={`relative w-56 bg-card rounded-xl shadow-md p-5 hover:-translate-y-2 hover:shadow-lg transition-all duration-300 ${offsets[i]}`}
+                  style={{
+                    transform: `rotate(${rotations[i]}deg)`,
+                    opacity: wave.isVisible ? 1 : 0,
+                    transition: `opacity 0.5s ease-out ${i * 0.1}s, transform 0.5s ease-out ${i * 0.1}s, box-shadow 0.3s ease`,
+                  }}
+                >
+                  {/* Tape */}
                   <div
-                    key={i}
-                    className={`w-56 min-h-[180px] bg-card rounded-2xl shadow-md p-5 flex-shrink-0 hover:-translate-y-2 hover:shadow-lg transition-all duration-300`}
-                    style={{
-                      transform: `rotate(${rotations[i]}deg) translateY(${event.above ? "-60px" : "60px"})`,
-                      opacity: wave.isVisible ? 1 : 0,
-                      transition: `opacity 0.5s ease-out ${0.25 + i * 0.2}s, transform 0.5s ease-out ${0.25 + i * 0.2}s, box-shadow 0.3s ease`,
-                      ...(wave.isVisible ? {} : { transform: `rotate(${rotations[i]}deg) translateY(${event.above ? "-40px" : "80px"})` }),
-                    }}
-                  >
-                    <span className="text-2xl block mb-2">{event.emoji}</span>
-                    <h3 className="text-base font-bold tracking-tight text-foreground mb-2">{event.title}</h3>
-                    <p className="text-sm text-muted-foreground italic leading-relaxed mb-2">"{event.quote}"</p>
-                    <p className="text-xs text-muted-foreground">{event.attribution}</p>
-                  </div>
-                );
-              })}
-            </div>
+                    className="absolute -top-2 left-1/2 -translate-x-1/2 w-12 h-4 bg-mustard/40 rounded-sm z-10"
+                    style={{ transform: `rotate(${i % 2 === 0 ? -3 : 4}deg)` }}
+                  />
+                  <span className="text-2xl block mb-2">{event.emoji}</span>
+                  <h3 className="text-base font-bold tracking-tight text-foreground mb-2">{event.title}</h3>
+                  <p className="text-sm text-muted-foreground italic leading-relaxed mb-2">"{event.quote}"</p>
+                  <p className="text-xs text-muted-foreground">{event.attribution}</p>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
