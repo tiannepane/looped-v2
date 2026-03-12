@@ -356,7 +356,7 @@ const Index = () => {
           <h2 className="scroll-reveal text-4xl font-bold tracking-tight text-foreground text-center mb-4">
             We know what your stuff is worth
           </h2>
-          <p className="scroll-reveal text-base text-muted-foreground max-w-2xl mx-auto text-center mb-16">
+          <p className="scroll-reveal text-2xl text-muted-foreground max-w-2xl mx-auto text-center mb-16" style={{ fontFamily: "'Gaegu', cursive" }}>
             Our pricing engine learns from real sales in your neighborhood. The more people sell, the smarter it gets.
           </p>
 
