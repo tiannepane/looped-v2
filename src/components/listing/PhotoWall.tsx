@@ -278,8 +278,9 @@ const PhotoWall = ({
 
       {/* Gingham tablecloth area */}
       <div className="mx-4 md:mx-8 lg:mx-16 rounded-2xl p-8 relative tablecloth-gingham">
-        {/* 3x2 Coaster grid */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+        {/* Strict 3x2 grid */}
+        <div className="grid grid-cols-3 gap-6">
+          {/* Render actual coasters */}
           {tableGroups.map((group, gi) => {
             const pricing = pricingData.find((p) => p.groupId === group.id);
             const isDragOver = dragOverTarget === group.id;
@@ -338,7 +339,6 @@ const PhotoWall = ({
                       <div className="relative flex items-center justify-center">
                         {group.photos.map((photo, pi) => {
                           const total = group.photos.length;
-                          // Fan-out: spread horizontally on hover
                           const fanSpread = isHovered ? (pi - (total - 1) / 2) * 80 : pi * -16;
                           const fanRotation = isHovered ? (pi - (total - 1) / 2) * 4 : (pi % 2 === 0 ? -2 : 2);
                           const zIndex = isHovered ? pi + 10 : total - pi;
@@ -388,67 +388,77 @@ const PhotoWall = ({
             );
           })}
 
-          {/* + New Item coaster (only if under 6) */}
-          {tableGroups.length < MAX_TABLE_ITEMS && (
-            <div
-              className={`rounded-2xl border-2 border-dashed transition-all duration-200 ease-out flex items-center justify-center min-h-[240px] cursor-pointer
-                ${dragOverTarget === "new-item" ? "border-foreground/40 bg-card/40" : "border-muted-foreground/20 hover:border-muted-foreground/40"}
-              `}
-              onDragOver={(e) => onDragOver(e, "new-item")}
-              onDragLeave={onDragLeave}
-              onDrop={onDropNewItem}
-              onDragEnd={onDragEnd}
-              onClick={() => {
-                if (!newItemNaming) {
-                  setNewItemNaming(true);
-                  setNewItemName("");
-                  setTimeout(() => newItemInputRef.current?.focus(), 0);
-                }
-              }}
-            >
-              {newItemNaming ? (
-                <form
-                  onSubmit={(e) => { e.preventDefault(); createNewItem(); }}
-                  className="flex flex-col items-center gap-3 p-4 w-full"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <span className="text-sm font-medium text-foreground">Name this item</span>
-                  <input
-                    ref={newItemInputRef}
-                    value={newItemName}
-                    onChange={(e) => setNewItemName(e.target.value)}
-                    onBlur={() => { if (!newItemName.trim()) setNewItemNaming(false); }}
-                    placeholder="e.g. Vintage Lamp"
-                    className="text-base text-center font-semibold text-foreground bg-transparent border-b-2 border-foreground/30 outline-none w-full max-w-[200px] focus:border-foreground transition-colors"
-                    autoFocus
-                  />
-                  <div className="flex gap-2">
-                    <Button
-                      type="submit"
-                      size="sm"
-                      className="rounded-full px-4 h-8 text-sm bg-foreground text-background hover:bg-foreground/90"
-                    >
-                      <Check className="w-3.5 h-3.5 mr-1" /> Create
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="rounded-lg px-3 h-8 text-sm"
-                      onClick={() => { setNewItemNaming(false); setNewItemName(""); }}
-                    >
-                      Cancel
-                    </Button>
+          {/* Empty "Add Item" slots to fill 3x2 grid */}
+          {Array.from({ length: Math.max(0, MAX_TABLE_ITEMS - tableGroups.length) }).map((_, i) => {
+            const slotKey = `empty-${i}`;
+            const isActiveSlot = i === 0; // First empty slot is the "new item" slot
+            const isDragOverSlot = dragOverTarget === "new-item" && isActiveSlot;
+
+            return (
+              <div
+                key={slotKey}
+                className={`rounded-2xl border-2 border-dashed transition-all duration-200 ease-out flex flex-col items-center justify-center min-h-[240px] cursor-pointer
+                  ${isDragOverSlot ? "border-foreground/40 bg-card/30" : "border-muted-foreground/[0.12] hover:border-muted-foreground/30"}
+                `}
+                onDragOver={isActiveSlot ? (e) => onDragOver(e, "new-item") : undefined}
+                onDragLeave={isActiveSlot ? onDragLeave : undefined}
+                onDrop={isActiveSlot ? onDropNewItem : undefined}
+                onDragEnd={isActiveSlot ? onDragEnd : undefined}
+                onClick={() => {
+                  if (!newItemNaming) {
+                    setNewItemNaming(true);
+                    setNewItemName("");
+                    setTimeout(() => newItemInputRef.current?.focus(), 0);
+                  }
+                }}
+              >
+                {newItemNaming && isActiveSlot ? (
+                  <form
+                    onSubmit={(e) => { e.preventDefault(); createNewItem(); }}
+                    className="flex flex-col items-center gap-3 p-4 w-full"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <span className="text-sm font-medium text-foreground">Name this item</span>
+                    <input
+                      ref={newItemInputRef}
+                      value={newItemName}
+                      onChange={(e) => setNewItemName(e.target.value)}
+                      onBlur={() => { if (!newItemName.trim()) setNewItemNaming(false); }}
+                      placeholder="e.g. Vintage Lamp"
+                      className="text-base text-center font-semibold text-foreground bg-transparent border-b-2 border-foreground/30 outline-none w-full max-w-[200px] focus:border-foreground transition-colors"
+                      autoFocus
+                    />
+                    <div className="flex gap-2">
+                      <Button
+                        type="submit"
+                        size="sm"
+                        className="rounded-full px-4 h-8 text-sm bg-foreground text-background hover:bg-foreground/90"
+                      >
+                        <Check className="w-3.5 h-3.5 mr-1" /> Create
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-lg px-3 h-8 text-sm"
+                        onClick={() => { setNewItemNaming(false); setNewItemName(""); }}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-muted-foreground/40">
+                    <Plus className="w-6 h-6" />
+                    <span className="text-sm" style={{ fontFamily: "'Gaegu', cursive" }}>Add Item</span>
+                    <span className="text-[11px] text-muted-foreground/30 max-w-[140px] text-center leading-snug" style={{ fontFamily: "'Gaegu', cursive" }}>
+                      Found something else while packing?
+                    </span>
                   </div>
-                </form>
-              ) : (
-                <div className="flex flex-col items-center gap-2 text-muted-foreground">
-                  <Plus className="w-8 h-8" />
-                  <span className="text-sm">New Item</span>
-                </div>
-              )}
-            </div>
-          )}
+                )}
+              </div>
+            );
+          })}
         </div>
 
         {/* Ungrouped photos (needs sorting) */}
