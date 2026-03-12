@@ -302,38 +302,39 @@
   50% { transform: translateY(-16px); }
 }
 
-/* Gingham tablecloth */
+/* Gingham tablecloth — soft woven linen */
 .tablecloth-gingham {
-  background-color: hsl(40, 30%, 96%);
+  background-color: hsl(38, 25%, 94%);
   background-image:
     repeating-linear-gradient(
       0deg,
-      hsla(20, 20%, 75%, 0.06) 0px,
-      hsla(20, 20%, 75%, 0.06) 1px,
-      transparent 1px,
-      transparent 24px
+      hsla(20, 15%, 70%, 0.07) 0px,
+      hsla(20, 15%, 70%, 0.04) 2px,
+      transparent 2px,
+      transparent 28px
     ),
     repeating-linear-gradient(
       90deg,
-      hsla(20, 20%, 75%, 0.06) 0px,
-      hsla(20, 20%, 75%, 0.06) 1px,
-      transparent 1px,
-      transparent 24px
+      hsla(20, 15%, 70%, 0.07) 0px,
+      hsla(20, 15%, 70%, 0.04) 2px,
+      transparent 2px,
+      transparent 28px
     ),
     repeating-linear-gradient(
       0deg,
-      hsla(30, 25%, 70%, 0.04) 0px,
-      hsla(30, 25%, 70%, 0.04) 1px,
-      transparent 1px,
-      transparent 48px
+      hsla(30, 20%, 65%, 0.05) 0px,
+      hsla(30, 20%, 65%, 0.03) 2px,
+      transparent 2px,
+      transparent 56px
     ),
     repeating-linear-gradient(
       90deg,
-      hsla(30, 25%, 70%, 0.04) 0px,
-      hsla(30, 25%, 70%, 0.04) 1px,
-      transparent 1px,
-      transparent 48px
-    );
+      hsla(30, 20%, 65%, 0.05) 0px,
+      hsla(30, 20%, 65%, 0.03) 2px,
+      transparent 2px,
+      transparent 56px
+    ),
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='linen'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23linen)' opacity='0.04'/%3E%3C/svg%3E");
 }
 
 /* Photo delete shake */
