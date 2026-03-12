@@ -23,6 +23,7 @@ export interface ItemGroup {
   condition: string;
   size: string;
   description: string;
+  postalCode?: string;
   photos: string[];
   confirmed: boolean;
   rejected: boolean;
