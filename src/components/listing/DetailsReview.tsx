@@ -236,7 +236,7 @@ const DetailsReview = ({
                 </div>
 
                 {/* Postal Code */}
-                <div>
+                <div {...(!group.postalCode || group.postalCode.length < 3 ? { 'data-missing-postal': '' } : {})}>
                   <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-1">
                     Postal Code (FSA) <span className="text-destructive">*</span>
                   </label>
@@ -248,8 +248,16 @@ const DetailsReview = ({
                     }}
                     placeholder="e.g. M5V"
                     maxLength={3}
-                    className="text-sm h-9 bg-transparent border-0 border-b border-foreground/15 rounded-none px-0 focus-visible:ring-0 focus-visible:border-foreground/40 hover:border-foreground/30 transition-colors shadow-none w-24"
+                    className={cn(
+                      "text-sm h-9 bg-transparent border-0 border-b rounded-none px-0 focus-visible:ring-0 transition-colors shadow-none w-24",
+                      !group.postalCode || group.postalCode.length < 3
+                        ? "border-destructive/50 hover:border-destructive/70 focus-visible:border-destructive"
+                        : "border-foreground/15 hover:border-foreground/30 focus-visible:border-foreground/40"
+                    )}
                   />
+                  {!group.postalCode || group.postalCode.length < 3 ? (
+                    <p className="text-[10px] text-destructive mt-1">Required — 3 characters</p>
+                  ) : null}
                 </div>
 
                 {/* Description — sticky note style */}
