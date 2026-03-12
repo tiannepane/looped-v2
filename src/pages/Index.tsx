@@ -264,7 +264,7 @@ const Index = () => {
           <div className="flex-1 min-w-0">
             <h1
               className="font-black uppercase leading-[0.9] text-foreground"
-              style={{ fontSize: "11vw", letterSpacing: "-0.03em" }}
+              style={{ fontSize: "8vw", letterSpacing: "-0.03em" }}
             >
               MAKE IT<br />COUNT
             </h1>
