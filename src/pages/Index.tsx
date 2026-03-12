@@ -490,17 +490,6 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="py-10 px-8 border-t border-border/50">
-        <div className="max-w-5xl mx-auto flex flex-col items-center gap-3">
-          <span className="text-sm font-black tracking-tight text-foreground">looped</span>
-          <span className="text-xs text-muted-foreground">Looped · Made in Toronto 🇨🇦</span>
-          <div className="flex gap-4 text-xs text-muted-foreground">
-            <a href="#" className="hover:text-foreground transition-colors">FAQ</a>
-            <a href="#" className="hover:text-foreground transition-colors">Feedback</a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };
