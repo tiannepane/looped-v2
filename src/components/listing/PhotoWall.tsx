@@ -536,9 +536,10 @@ const PhotoWall = ({
           <Button
             onClick={onContinue}
             disabled={ungroupedCount > 0}
-            className={`rounded-lg px-8 py-3 h-11 font-semibold text-base transition-all ${
+            className={`rounded-full px-8 py-3 h-11 font-bold text-base bg-foreground text-background hover:bg-foreground/90 transition-all ${
               ungroupedCount > 0 ? "opacity-50" : "hover:shadow-md"
             }`}
+            style={{ fontFamily: "'Gaegu', cursive" }}
           >
             Review Details
           </Button>
