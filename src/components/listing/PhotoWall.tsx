@@ -36,7 +36,7 @@ const EditableTitle = ({
   if (!editing) {
     return (
       <button
-        className="group/edit flex items-center gap-1.5 text-lg font-bold tracking-tight text-foreground uppercase truncate w-full"
+        className="group/edit flex items-center gap-1.5 text-sm font-bold tracking-tight text-foreground uppercase truncate w-full"
         onClick={() => {
           setEditing(true);
           setDraft(value);
