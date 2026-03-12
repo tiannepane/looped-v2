@@ -335,47 +335,45 @@ const PhotoWall = ({
 
                   {/* Photos — fan-out on hover */}
                   {group.photos.length > 0 ? (
-                    <div className="flex items-center justify-center min-h-[150px] overflow-visible">
-                      <div className="flex items-end gap-[-8px]" style={{ marginLeft: group.photos.length > 1 ? '8px' : '0' }}>
-                        {group.photos.map((photo, pi) => {
-                          const total = group.photos.length;
-                          const stackOffset = isHovered ? 0 : pi > 0 ? -20 : 0;
-                          const fanRotation = isHovered ? (pi - (total - 1) / 2) * 6 : (pi % 2 === 0 ? -2 : 2);
-
-                          return (
-                            <div
-                              key={pi}
-                              className="relative group/photo flex-shrink-0"
-                              style={{
-                                marginLeft: pi > 0 ? (isHovered ? '4px' : '-20px') : '0',
-                                transform: `rotate(${fanRotation}deg)`,
-                                zIndex: isHovered ? pi + 10 : total - pi,
-                                transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                    <div
+                      className="flex items-center justify-center min-h-[120px] overflow-hidden cursor-pointer"
+                      onClick={() => setExpandedCoaster(expandedCoaster === group.id ? null : group.id)}
+                    >
+                      {/* Stacked preview — show max 3 overlapping */}
+                      <div className="flex items-center justify-center">
+                        {group.photos.slice(0, 3).map((photo, pi) => (
+                          <div
+                            key={pi}
+                            className="relative flex-shrink-0"
+                            style={{
+                              marginLeft: pi > 0 ? '-16px' : '0',
+                              transform: `rotate(${pi % 2 === 0 ? -3 : 3}deg)`,
+                              zIndex: 3 - pi,
+                            }}
+                          >
+                            <img
+                              src={photo}
+                              alt={`${group.title} ${pi + 1}`}
+                              draggable
+                              onDragStart={(e) => {
+                                e.dataTransfer.effectAllowed = "move";
+                                onDragStartHandler(photo, group.id);
                               }}
-                            >
-                              <img
-                                src={photo}
-                                alt={`${group.title} ${pi + 1}`}
-                                draggable
-                                onDragStart={(e) => {
-                                  e.dataTransfer.effectAllowed = "move";
-                                  onDragStartHandler(photo, group.id);
-                                }}
-                                className="w-24 h-32 object-cover rounded-lg shadow-md cursor-grab active:cursor-grabbing
-                                  hover:shadow-xl transition-shadow duration-200"
-                              />
-                              <button
-                                onClick={(e) => { e.stopPropagation(); deletePhoto(group.id, photo); }}
-                                className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-foreground text-background flex items-center justify-center
-                                  opacity-0 group-hover/photo:opacity-100 transition-all duration-200 z-50 shadow-md
-                                  hover:scale-110 hover:animate-[shake_0.3s_ease-in-out]"
-                              >
-                                <X className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          );
-                        })}
+                              className="w-20 h-24 object-cover rounded-lg shadow-md cursor-grab active:cursor-grabbing ring-2 ring-white"
+                            />
+                          </div>
+                        ))}
+                        {group.photos.length > 3 && (
+                          <div className="w-20 h-24 rounded-lg bg-foreground/5 flex items-center justify-center text-xs font-medium text-muted-foreground shadow-sm ring-2 ring-white"
+                            style={{ marginLeft: '-16px', zIndex: 0 }}
+                          >
+                            +{group.photos.length - 3}
+                          </div>
+                        )}
                       </div>
+                      <span className="text-[10px] text-muted-foreground/50 absolute bottom-2 right-3">
+                        {group.photos.length} photo{group.photos.length !== 1 ? "s" : ""} · tap to expand
+                      </span>
                     </div>
                   ) : (
                     <div className="flex items-center justify-center min-h-[150px] text-sm text-muted-foreground italic">
