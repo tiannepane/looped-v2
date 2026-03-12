@@ -28,11 +28,18 @@
     --destructive: 0 60% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 140 30% 45%;
+    --success: 150 25% 55%;
     --success-foreground: 0 0% 100%;
 
     --info: 210 30% 55%;
     --info-foreground: 0 0% 100%;
+
+    /* Expanded palette */
+    --dusty-rose: 350 40% 70%;
+    --sage: 150 25% 55%;
+    --mustard: 45 70% 60%;
+    --lavender: 260 30% 75%;
+    --soft-blue: 210 40% 80%;
 
     --border: 30 15% 88%;
     --input: 30 15% 88%;
@@ -57,10 +64,31 @@
   }
 
   body {
-    @apply bg-background text-foreground antialiased;
+    @apply text-foreground antialiased;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: linear-gradient(180deg, hsl(40, 35%, 97%) 0%, hsl(35, 30%, 94%) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
   }
 
+  /* Subtle grain texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.04;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 200px 200px;
+  }
+
+  /* Ensure all content sits above grain */
+  body > * {
+    position: relative;
+    z-index: 1;
+  }
 
   h1, h2, h3, h4, h5, h6 {
     @apply tracking-tight font-bold;
@@ -71,6 +99,55 @@
   .text-balance {
     text-wrap: balance;
   }
+}
+
+/* Scroll-triggered animations */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.scroll-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Wavy underline decoration */
+.wavy-underline {
+  position: relative;
+  display: inline;
+}
+.wavy-underline::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: hsl(18 60% 50% / 0.4);
+  border-radius: 2px;
+  mask-image: url("data:image/svg+xml,%3Csvg width='20' height='4' viewBox='0 0 20 4' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 2 Q5 0 10 2 Q15 4 20 2' stroke='black' fill='none' stroke-width='2'/%3E%3C/svg%3E");
+  mask-repeat: repeat-x;
+  mask-size: 20px 4px;
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg width='20' height='4' viewBox='0 0 20 4' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 2 Q5 0 10 2 Q15 4 20 2' stroke='black' fill='none' stroke-width='2'/%3E%3C/svg%3E");
+  -webkit-mask-repeat: repeat-x;
+  -webkit-mask-size: 20px 4px;
+}
+
+/* Tape decoration */
+.tape-effect::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 32px;
+  height: 12px;
+  background: hsl(45, 70%, 75%);
+  border-radius: 2px;
+  opacity: 0.8;
+  z-index: 10;
 }
 
 @keyframes fadeInUp {
@@ -108,6 +185,22 @@
   0%, 100% { transform: translateY(0px) rotate(2deg); }
   50% { transform: translateY(-12px) rotate(4deg); }
 }
+@keyframes float-7 {
+  0%, 100% { transform: translateY(0px) rotate(3deg); }
+  50% { transform: translateY(-16px) rotate(1deg); }
+}
+@keyframes float-8 {
+  0%, 100% { transform: translateY(0px) rotate(-4deg); }
+  50% { transform: translateY(-14px) rotate(-2deg); }
+}
+@keyframes float-9 {
+  0%, 100% { transform: translateY(0px) rotate(1deg); }
+  50% { transform: translateY(-18px) rotate(3deg); }
+}
+@keyframes float-10 {
+  0%, 100% { transform: translateY(0px) rotate(-1deg); }
+  50% { transform: translateY(-10px) rotate(2deg); }
+}
 
 .animate-float-1 { animation: float-1 6s ease-in-out infinite; }
 .animate-float-2 { animation: float-2 7s ease-in-out infinite 0.5s; }
@@ -115,3 +208,16 @@
 .animate-float-4 { animation: float-4 8s ease-in-out infinite 1.5s; }
 .animate-float-5 { animation: float-5 6.5s ease-in-out infinite 0.3s; }
 .animate-float-6 { animation: float-6 7.5s ease-in-out infinite 0.8s; }
+.animate-float-7 { animation: float-7 5.5s ease-in-out infinite 0.7s; }
+.animate-float-8 { animation: float-8 6.8s ease-in-out infinite 1.2s; }
+.animate-float-9 { animation: float-9 7.2s ease-in-out infinite 0.4s; }
+.animate-float-10 { animation: float-10 8.5s ease-in-out infinite 1s; }
+
+/* Horizontal scroll snap for life moments */
+.snap-scroll {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.snap-scroll > * {
+  scroll-snap-align: center;
+}
