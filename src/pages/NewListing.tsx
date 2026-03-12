@@ -11,7 +11,7 @@ import CompletionStep from "@/components/listing/CompletionStep";
 // TODO: Send all photos to Claude Vision API in a single call.
 // Prompt should ask Claude to group photos by item and generate
 // title, category, condition, size, and description for each group.
-const MOCK_GROUPS: Omit<ItemGroup, "id" | "confirmed" | "editedFields">[] = [
+const MOCK_GROUPS: Omit<ItemGroup, "id" | "confirmed" | "rejected" | "editedFields">[] = [
   {
     title: "Mid-Century Modern Sofa — Orange",
     category: "Furniture",
