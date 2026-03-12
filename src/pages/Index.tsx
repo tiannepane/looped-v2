@@ -157,10 +157,10 @@ const CalendarAnimation = () => {
           </div>
 
           {/* Typewriter label */}
-          <div className="mt-3 h-5 flex items-center justify-center">
+          <div className="mt-4 h-7 flex items-center justify-center">
             <span
-              className="text-xs font-semibold tracking-tight"
-              style={{ color: moment.color }}
+              className="text-base font-semibold tracking-tight"
+              style={{ color: moment.color, fontFamily: "'Caveat', cursive" }}
             >
               {moment.label.slice(0, typedChars)}
               {phase === "type" && (
