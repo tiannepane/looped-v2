@@ -185,226 +185,228 @@ const KanbanBoard = ({ groups, setGroups, ungroupedPhotos, setUngroupedPhotos, o
       {/* Main content area — fills remaining space */}
       <div className="flex-1 min-h-0 flex flex-col">
         {!allReviewed && currentGroup ? (
-          <div className="flex gap-6 flex-1 min-h-0">
-            {/* Left: Swipe card */}
-            <div className="flex flex-col items-center w-80 flex-shrink-0">
-              <div className="relative w-full flex-1 min-h-0">
-                {reviewableGroups.length > 2 && (
-                  <div className="absolute inset-0 mx-3 mt-3 bg-card border border-border rounded-xl opacity-40" />
-                )}
-                {reviewableGroups.length > 1 && (
-                  <div className="absolute inset-0 mx-1.5 mt-1.5 bg-card border border-border rounded-xl opacity-60" />
-                )}
-
-                <div
-                  className="absolute inset-0 bg-card border border-border rounded-xl shadow-lg overflow-hidden select-none touch-none"
-                  style={{
-                    transform: getCardTransform(),
-                    transition: swipeDirection || (!isDragging && dragX === 0) ? "transform 0.3s ease-out" : "none",
-                    cursor: isDragging ? "grabbing" : "grab",
-                  }}
-                  onPointerDown={onPointerDown}
-                  onPointerMove={onPointerMove}
-                  onPointerUp={onPointerUp}
-                >
-                  {/* Swipe overlays */}
-                  {dragX > 0 && (
-                    <div
-                      className="absolute inset-0 bg-success/20 z-10 flex items-center justify-center pointer-events-none rounded-xl"
-                      style={{ opacity: getOverlayOpacity() }}
-                    >
-                      <div className="bg-success text-success-foreground px-5 py-2 rounded-lg text-lg font-black tracking-wide rotate-[-15deg] border-4 border-success">
-                        APPROVE
-                      </div>
-                    </div>
+          <div className="flex flex-col flex-1 min-h-0">
+            <div className="flex gap-6 flex-1 min-h-0">
+              {/* Left: Swipe card */}
+              <div className="flex flex-col w-[55%] flex-shrink-0 min-h-0">
+                <div className="relative w-full flex-1 min-h-0">
+                  {reviewableGroups.length > 2 && (
+                    <div className="absolute inset-0 mx-3 mt-3 bg-card border border-border rounded-xl opacity-40" />
                   )}
-                  {dragX < 0 && (
-                    <div
-                      className="absolute inset-0 bg-destructive/20 z-10 flex items-center justify-center pointer-events-none rounded-xl"
-                      style={{ opacity: getOverlayOpacity() }}
-                    >
-                      <div className="bg-destructive text-destructive-foreground px-5 py-2 rounded-lg text-lg font-black tracking-wide rotate-[15deg] border-4 border-destructive">
-                        SKIP
-                      </div>
-                    </div>
+                  {reviewableGroups.length > 1 && (
+                    <div className="absolute inset-0 mx-1.5 mt-1.5 bg-card border border-border rounded-xl opacity-60" />
                   )}
 
-                  {/* Card visual content — photos fill the card */}
-                  <div className="p-4 h-full flex flex-col">
-                    {/* Photo grid with delete on hover */}
-                    <div className="flex gap-1.5 flex-wrap flex-1 min-h-0 overflow-y-auto pb-2">
-                      {currentGroup.photos.map((photo, i) => (
-                        <div key={i} className="relative group/photo">
-                          <img
-                            src={photo}
-                            alt={`${currentGroup.title} ${i + 1}`}
-                            className="w-16 h-16 object-cover rounded-lg border border-border cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-primary/50 transition-all"
-                            draggable
-                            onDragStart={(e) => { e.stopPropagation(); onPhotoDragStart(e, photo, currentGroup.id); }}
-                            onPointerDown={(e) => e.stopPropagation()}
-                          />
-                          <button
-                            className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity shadow-sm"
-                            onClick={(e) => { e.stopPropagation(); deletePhoto(currentGroup.id, photo); }}
-                            onPointerDown={(e) => e.stopPropagation()}
-                          >
-                            <Trash2 className="w-2.5 h-2.5" />
-                          </button>
+                  <div
+                    className="absolute inset-0 bg-card border border-border rounded-xl shadow-lg overflow-hidden select-none touch-none"
+                    style={{
+                      transform: getCardTransform(),
+                      transition: swipeDirection || (!isDragging && dragX === 0) ? "transform 0.3s ease-out" : "none",
+                      cursor: isDragging ? "grabbing" : "grab",
+                    }}
+                    onPointerDown={onPointerDown}
+                    onPointerMove={onPointerMove}
+                    onPointerUp={onPointerUp}
+                  >
+                    {/* Swipe overlays */}
+                    {dragX > 0 && (
+                      <div
+                        className="absolute inset-0 bg-success/20 z-10 flex items-center justify-center pointer-events-none rounded-xl"
+                        style={{ opacity: getOverlayOpacity() }}
+                      >
+                        <div className="bg-success text-success-foreground px-5 py-2 rounded-lg text-lg font-black tracking-wide rotate-[-15deg] border-4 border-success">
+                          APPROVE
                         </div>
-                      ))}
-                      {currentGroup.photos.length === 0 && (
-                        <div className="w-full h-16 bg-accent rounded-lg flex items-center justify-center text-xs text-muted-foreground">
-                          No photos
+                      </div>
+                    )}
+                    {dragX < 0 && (
+                      <div
+                        className="absolute inset-0 bg-destructive/20 z-10 flex items-center justify-center pointer-events-none rounded-xl"
+                        style={{ opacity: getOverlayOpacity() }}
+                      >
+                        <div className="bg-destructive text-destructive-foreground px-5 py-2 rounded-lg text-lg font-black tracking-wide rotate-[15deg] border-4 border-destructive">
+                          SKIP
                         </div>
-                      )}
-                    </div>
-
-                    {/* Move photos collapsible */}
-                    {otherGroups.length > 0 && currentGroup.photos.length > 0 && (
-                      <Collapsible open={movePhotosOpen} onOpenChange={setMovePhotosOpen}>
-                        <CollapsibleTrigger
-                          className="flex items-center gap-1 text-[9px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors py-1"
-                          onPointerDown={(e) => e.stopPropagation()}
-                        >
-                          {movePhotosOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                          Move photo to…
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                          <div className="flex gap-1.5 overflow-x-auto pb-1" onPointerDown={(e) => e.stopPropagation()}>
-                            {otherGroups.map((g) => (
-                              <div
-                                key={g.id}
-                                className="flex-shrink-0 w-20 p-1.5 bg-accent/50 border-2 border-dashed border-border rounded-lg text-center hover:border-primary/50 transition-colors"
-                                onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add("border-primary", "bg-primary/10"); }}
-                                onDragLeave={(e) => { e.currentTarget.classList.remove("border-primary", "bg-primary/10"); }}
-                                onDrop={(e) => { e.currentTarget.classList.remove("border-primary", "bg-primary/10"); onPhotoDrop(e, g.id); }}
-                              >
-                                {g.photos.length > 0 ? (
-                                  <img src={g.photos[0]} alt={g.title} className="w-full h-10 object-cover rounded mb-0.5" draggable={false} />
-                                ) : (
-                                  <div className="w-full h-10 bg-muted rounded mb-0.5" />
-                                )}
-                                <span className="text-[8px] font-medium text-muted-foreground leading-tight line-clamp-1">{g.title}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </CollapsibleContent>
-                      </Collapsible>
+                      </div>
                     )}
 
-                    {/* Title inline */}
-                    <Input
-                      value={currentGroup.title}
-                      onChange={(e) => handleFieldChange(currentGroup.id, "title", e.target.value)}
-                      className="text-sm font-bold border-none p-0 h-auto bg-transparent focus-visible:ring-0 mt-2 flex-shrink-0"
-                      onPointerDown={(e) => e.stopPropagation()}
-                    />
-                  </div>
-                </div>
-              </div>
+                    {/* Card content — title at top, photos fill rest */}
+                    <div className="p-4 h-full flex flex-col">
+                      {/* Title at top */}
+                      <Input
+                        value={currentGroup.title}
+                        onChange={(e) => handleFieldChange(currentGroup.id, "title", e.target.value)}
+                        className="text-base font-bold border-none p-0 h-auto bg-transparent focus-visible:ring-0 mb-3 flex-shrink-0"
+                        onPointerDown={(e) => e.stopPropagation()}
+                      />
 
-              {/* Action buttons */}
-              <div className="flex items-center gap-5 mt-4 flex-shrink-0">
-                <button
-                  onClick={rejectItem}
-                  className="w-12 h-12 rounded-full bg-card border-2 border-destructive text-destructive flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-all duration-200 shadow-md"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={approveItem}
-                  className="w-14 h-14 rounded-full bg-success text-success-foreground flex items-center justify-center hover:scale-110 transition-all duration-200 shadow-lg"
-                >
-                  <Check className="w-6 h-6" />
-                </button>
-              </div>
-            </div>
-
-            {/* Right: Editable fields */}
-            <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-3 pr-1">
-              {/* Category */}
-              <div>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Category</label>
-                  <AiBadge field="category" />
-                </div>
-                <Select value={currentGroup.category} onValueChange={(v) => handleFieldChange(currentGroup.id, "category", v)}>
-                  <SelectTrigger className="text-sm h-8 bg-background"><SelectValue placeholder="Select category" /></SelectTrigger>
-                  <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-
-              {/* Condition */}
-              <div>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Condition</label>
-                  <AiBadge field="condition" />
-                </div>
-                <Select value={currentGroup.condition} onValueChange={(v) => handleFieldChange(currentGroup.id, "condition", v)}>
-                  <SelectTrigger className="text-sm h-8 bg-background"><SelectValue placeholder="Select condition" /></SelectTrigger>
-                  <SelectContent>{CONDITIONS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
-                </Select>
-              </div>
-
-              {/* Size */}
-              <div>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Size</label>
-                  <AiBadge field="size" />
-                </div>
-                <Input
-                  value={currentGroup.size}
-                  onChange={(e) => handleFieldChange(currentGroup.id, "size", e.target.value)}
-                  className="text-sm h-8 bg-background"
-                />
-              </div>
-
-              {/* Description */}
-              <div className="flex-1 flex flex-col min-h-0">
-                <div className="flex items-center gap-1.5 mb-1">
-                  <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Description</label>
-                  <AiBadge field="description" />
-                </div>
-                <Textarea
-                  value={currentGroup.description}
-                  onChange={(e) => handleFieldChange(currentGroup.id, "description", e.target.value)}
-                  className="text-sm bg-background flex-1 min-h-[60px] resize-none"
-                />
-              </div>
-
-              {/* Skipped tray inline */}
-              {skippedGroups.length > 0 && (
-                <div className="flex-shrink-0 pt-2 border-t border-border">
-                  <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2 font-medium">
-                    Skipped · tap to restore
-                  </h4>
-                  <div className="flex gap-2 overflow-x-auto pb-1">
-                    {skippedGroups.map((g) => (
-                      <button
-                        key={g.id}
-                        onClick={() => restoreItem(g.id)}
-                        className="flex-shrink-0 w-20 bg-card border border-border rounded-lg p-1.5 hover:border-primary/50 hover:shadow-md transition-all group"
-                      >
-                        {g.photos.length > 0 ? (
-                          <img src={g.photos[0]} alt={g.title} className="w-full h-12 object-cover rounded mb-1" />
-                        ) : (
-                          <div className="w-full h-12 bg-accent rounded mb-1 flex items-center justify-center">
-                            <X className="w-3 h-3 text-muted-foreground" />
+                      {/* Photo grid */}
+                      <div className="flex gap-1.5 flex-wrap flex-1 min-h-0 overflow-y-auto pb-2 content-start">
+                        {currentGroup.photos.map((photo, i) => (
+                          <div key={i} className="relative group/photo">
+                            <img
+                              src={photo}
+                              alt={`${currentGroup.title} ${i + 1}`}
+                              className="w-20 h-20 object-cover rounded-lg border border-border cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-primary/50 transition-all"
+                              draggable
+                              onDragStart={(e) => { e.stopPropagation(); onPhotoDragStart(e, photo, currentGroup.id); }}
+                              onPointerDown={(e) => e.stopPropagation()}
+                            />
+                            <button
+                              className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity shadow-sm"
+                              onClick={(e) => { e.stopPropagation(); deletePhoto(currentGroup.id, photo); }}
+                              onPointerDown={(e) => e.stopPropagation()}
+                            >
+                              <Trash2 className="w-2.5 h-2.5" />
+                            </button>
+                          </div>
+                        ))}
+                        {currentGroup.photos.length === 0 && (
+                          <div className="w-full h-20 bg-accent rounded-lg flex items-center justify-center text-xs text-muted-foreground">
+                            No photos
                           </div>
                         )}
-                        <span className="text-[9px] font-medium text-muted-foreground leading-tight line-clamp-1 group-hover:text-foreground transition-colors">
-                          {g.title}
-                        </span>
-                      </button>
-                    ))}
+                      </div>
+
+                      {/* Move photos collapsible */}
+                      {otherGroups.length > 0 && currentGroup.photos.length > 0 && (
+                        <Collapsible open={movePhotosOpen} onOpenChange={setMovePhotosOpen}>
+                          <CollapsibleTrigger
+                            className="flex items-center gap-1 text-[9px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors py-1"
+                            onPointerDown={(e) => e.stopPropagation()}
+                          >
+                            {movePhotosOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                            Move photo to…
+                          </CollapsibleTrigger>
+                          <CollapsibleContent>
+                            <div className="flex gap-1.5 overflow-x-auto pb-1" onPointerDown={(e) => e.stopPropagation()}>
+                              {otherGroups.map((g) => (
+                                <div
+                                  key={g.id}
+                                  className="flex-shrink-0 w-20 p-1.5 bg-accent/50 border-2 border-dashed border-border rounded-lg text-center hover:border-primary/50 transition-colors"
+                                  onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add("border-primary", "bg-primary/10"); }}
+                                  onDragLeave={(e) => { e.currentTarget.classList.remove("border-primary", "bg-primary/10"); }}
+                                  onDrop={(e) => { e.currentTarget.classList.remove("border-primary", "bg-primary/10"); onPhotoDrop(e, g.id); }}
+                                >
+                                  {g.photos.length > 0 ? (
+                                    <img src={g.photos[0]} alt={g.title} className="w-full h-10 object-cover rounded mb-0.5" draggable={false} />
+                                  ) : (
+                                    <div className="w-full h-10 bg-muted rounded mb-0.5" />
+                                  )}
+                                  <span className="text-[8px] font-medium text-muted-foreground leading-tight line-clamp-1">{g.title}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </CollapsibleContent>
+                        </Collapsible>
+                      )}
+                    </div>
                   </div>
                 </div>
-              )}
+              </div>
 
-              <Button onClick={onContinue} size="sm" className="rounded-lg w-full flex-shrink-0" disabled={!allReviewed || confirmedCount === 0}>
-                Continue to Pricing
-              </Button>
+              {/* Right: Editable fields */}
+              <div className="flex-1 min-h-0 overflow-y-auto flex flex-col gap-3 pr-1">
+                {/* Category + Condition on one row */}
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Category</label>
+                      <AiBadge field="category" />
+                    </div>
+                    <Select value={currentGroup.category} onValueChange={(v) => handleFieldChange(currentGroup.id, "category", v)}>
+                      <SelectTrigger className="text-sm h-8 bg-background"><SelectValue placeholder="Select category" /></SelectTrigger>
+                      <SelectContent>{CATEGORIES.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Condition</label>
+                      <AiBadge field="condition" />
+                    </div>
+                    <Select value={currentGroup.condition} onValueChange={(v) => handleFieldChange(currentGroup.id, "condition", v)}>
+                      <SelectTrigger className="text-sm h-8 bg-background"><SelectValue placeholder="Select condition" /></SelectTrigger>
+                      <SelectContent>{CONDITIONS.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* Size */}
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Size</label>
+                    <AiBadge field="size" />
+                  </div>
+                  <Input
+                    value={currentGroup.size}
+                    onChange={(e) => handleFieldChange(currentGroup.id, "size", e.target.value)}
+                    className="text-sm h-8 bg-background"
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="flex-1 flex flex-col min-h-0">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <label className="text-[10px] uppercase tracking-widest text-muted-foreground">Description</label>
+                    <AiBadge field="description" />
+                  </div>
+                  <Textarea
+                    value={currentGroup.description}
+                    onChange={(e) => handleFieldChange(currentGroup.id, "description", e.target.value)}
+                    className="text-sm bg-background flex-1 min-h-[60px] resize-none"
+                  />
+                </div>
+
+                {/* Skipped tray */}
+                {skippedGroups.length > 0 && (
+                  <div className="flex-shrink-0 pt-2 border-t border-border">
+                    <h4 className="text-[10px] uppercase tracking-widest text-muted-foreground mb-2 font-medium">
+                      Skipped · tap to restore
+                    </h4>
+                    <div className="flex gap-2 overflow-x-auto pb-1">
+                      {skippedGroups.map((g) => (
+                        <button
+                          key={g.id}
+                          onClick={() => restoreItem(g.id)}
+                          className="flex-shrink-0 w-20 bg-card border border-border rounded-lg p-1.5 hover:border-primary/50 hover:shadow-md transition-all group"
+                        >
+                          {g.photos.length > 0 ? (
+                            <img src={g.photos[0]} alt={g.title} className="w-full h-12 object-cover rounded mb-1" />
+                          ) : (
+                            <div className="w-full h-12 bg-accent rounded mb-1 flex items-center justify-center">
+                              <X className="w-3 h-3 text-muted-foreground" />
+                            </div>
+                          )}
+                          <span className="text-[9px] font-medium text-muted-foreground leading-tight line-clamp-1 group-hover:text-foreground transition-colors">
+                            {g.title}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
+
+            {/* Centered action buttons below full width */}
+            <div className="flex items-center justify-center gap-5 py-3 flex-shrink-0">
+              <button
+                onClick={rejectItem}
+                className="w-12 h-12 rounded-full bg-card border-2 border-destructive text-destructive flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-all duration-200 shadow-md"
+              >
+                <X className="w-5 h-5" />
+              </button>
+              <button
+                onClick={approveItem}
+                className="w-14 h-14 rounded-full bg-success text-success-foreground flex items-center justify-center hover:scale-110 transition-all duration-200 shadow-lg"
+              >
+                <Check className="w-6 h-6" />
+              </button>
+            </div>
+
+            <Button onClick={onContinue} size="sm" className="rounded-lg w-full flex-shrink-0" disabled={!allReviewed || confirmedCount === 0}>
+              Continue to Pricing
+            </Button>
           </div>
         ) : (
           /* Summary when all reviewed */
