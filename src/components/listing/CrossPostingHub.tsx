@@ -216,16 +216,17 @@ const CrossPostingHub = ({ groups, pricingData, onComplete }: CrossPostingHubPro
 
         {/* Karrot */}
         <div
-          className="bg-card rounded-2xl p-6 backdrop-blur-md relative"
+          className="rounded-xl p-6 relative"
           style={{
-            transform: "rotate(-0.5deg)",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.06), 3px 5px 0 hsl(30, 30%, 85%)",
+            background: "hsl(38, 20%, 93%)",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)",
           }}
         >
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-14 h-4 bg-foreground/[0.06] rounded-sm" />
           <div className="flex items-center gap-3 mb-4">
             <div
-              className="w-11 h-11 rounded-xl flex items-center justify-center shadow-md"
-              style={{ backgroundColor: "#FF6F0F", boxShadow: "2px 3px 0 rgba(0,0,0,0.15)" }}
+              className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm"
+              style={{ backgroundColor: "#FF6F0F" }}
             >
               <span className="text-lg">🥕</span>
             </div>
@@ -245,8 +246,7 @@ const CrossPostingHub = ({ groups, pricingData, onComplete }: CrossPostingHubPro
             )}
           </div>
           <Button
-            className="w-full rounded-full font-bold text-xs uppercase tracking-wide bg-primary text-primary-foreground hover:bg-primary/90 mb-4"
-            style={{ boxShadow: "0 3px 12px hsl(18, 60%, 50%, 0.3)" }}
+            className="w-full rounded-full font-bold text-xs uppercase tracking-wide bg-foreground text-background hover:bg-foreground/90 mb-4"
             onClick={() => {
               copyAndOpen("https://www.karrotmarket.com");
               setKarrotPosted((prev) => ({ ...prev, [selectedGroup.id]: true }));
@@ -285,43 +285,6 @@ const CrossPostingHub = ({ groups, pricingData, onComplete }: CrossPostingHubPro
           </div>
         </div>
       </div>
-
-      {/* Coming Soon — subtle */}
-      <div className="mb-10">
-        <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground/50 mb-3">Coming Soon</p>
-        <div className="flex gap-6">
-          {[
-            { letter: "VS", bg: "#E0F2F1", color: "#00897B", name: "VarageSale" },
-            { letter: "N", bg: "#E8F5E9", color: "#00B246", name: "Nextdoor" },
-            { letter: "f+", bg: "#E3F2FD", color: "#1877F2", name: "FB Groups" },
-          ].map((p) => (
-            <div key={p.name} className="flex items-center gap-2 opacity-40">
-              <div className="w-8 h-8 rounded-lg flex items-center justify-center text-[10px] font-black" style={{ backgroundColor: p.bg, color: p.color }}>
-                {p.letter}
-              </div>
-              <span className="text-xs text-muted-foreground">{p.name}</span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Sales Ticker — dusty rose strip */}
-      <div className="rounded-xl overflow-hidden mb-6" style={{ backgroundColor: "hsl(var(--dusty-rose) / 0.15)" }}>
-        <div className="py-2.5 px-4 flex items-center overflow-hidden">
-          <div className="flex gap-4 animate-[ticker_20s_linear_infinite] whitespace-nowrap">
-            {[...tickerItems, ...tickerItems].map((item, i) => (
-              <span key={i} className="text-xs font-medium text-foreground/60">
-                [{item}]
-              </span>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Margin note */}
-      <p className="text-muted-foreground/40 text-sm mb-4 italic" style={{ fontFamily: "'Gaegu', cursive" }}>
-        {totalPosted > 0 ? `${totalPosted} listing${totalPosted !== 1 ? "s" : ""} pushed so far. Keep going!` : "Select an item above, then push to each platform."}
-      </p>
 
       {/* Fixed bottom bar */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-border">
