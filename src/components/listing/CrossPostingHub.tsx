@@ -122,20 +122,21 @@ const CrossPostingHub = ({ groups, pricingData, onComplete }: CrossPostingHubPro
         })}
       </div>
 
-      {/* Platform "Press Kits" */}
+      {/* Platform sticky note cards */}
       <div className="grid grid-cols-3 gap-6 mb-10">
         {/* Facebook */}
         <div
-          className="bg-card rounded-2xl p-6 backdrop-blur-md relative"
+          className="rounded-xl p-6 relative"
           style={{
-            transform: "rotate(-1deg)",
-            boxShadow: "0 4px 20px rgba(0,0,0,0.06), 3px 5px 0 hsl(30, 30%, 85%)",
+            background: "hsl(38, 20%, 93%)",
+            boxShadow: "0 2px 8px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)",
           }}
         >
+          <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-14 h-4 bg-foreground/[0.06] rounded-sm" />
           <div className="flex items-center gap-3 mb-4">
             <div
-              className="w-11 h-11 rounded-xl flex items-center justify-center shadow-md"
-              style={{ backgroundColor: "#1877F2", boxShadow: "2px 3px 0 rgba(0,0,0,0.15)" }}
+              className="w-10 h-10 rounded-lg flex items-center justify-center shadow-sm"
+              style={{ backgroundColor: "#1877F2" }}
             >
               <span className="text-white text-lg font-black">f</span>
             </div>
@@ -155,8 +156,7 @@ const CrossPostingHub = ({ groups, pricingData, onComplete }: CrossPostingHubPro
             )}
           </div>
           <Button
-            className="w-full rounded-full font-bold text-xs uppercase tracking-wide bg-primary text-primary-foreground hover:bg-primary/90"
-            style={{ boxShadow: "0 3px 12px hsl(18, 60%, 50%, 0.3)" }}
+            className="w-full rounded-full font-bold text-xs uppercase tracking-wide bg-foreground text-background hover:bg-foreground/90"
             onClick={() => {
               copyAndOpen("https://facebook.com/marketplace/create");
               setFbPosted((prev) => ({ ...prev, [selectedGroup.id]: true }));
