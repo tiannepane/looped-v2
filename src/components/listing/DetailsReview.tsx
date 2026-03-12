@@ -52,6 +52,17 @@ const DetailsReview = ({
 
   const totalValue = pricingData.reduce((sum, p) => sum + p.recommended, 0);
 
+  const allPostalCodesValid = groups.every((g) => g.postalCode && g.postalCode.length === 3);
+
+  const handleComplete = () => {
+    if (!allPostalCodesValid) {
+      const el = document.querySelector('[data-missing-postal]');
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    onComplete();
+  };
+
   const handleFieldChange = (groupId: string, field: string, value: string) => {
     setGroups((prev) =>
       prev.map((g) =>
