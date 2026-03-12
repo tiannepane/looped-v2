@@ -70,7 +70,7 @@ const CalendarAnimation = () => {
 
   return (
     <div
-      className="w-56 lg:w-64 bg-card rounded-2xl shadow-xl overflow-hidden select-none"
+      className="w-[28rem] lg:w-[32rem] bg-card rounded-2xl shadow-xl overflow-hidden select-none"
       style={{
         transform: "rotate(2deg)",
         animation: "calendar-float 4s ease-in-out infinite",
