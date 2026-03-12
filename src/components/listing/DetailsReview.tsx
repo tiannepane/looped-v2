@@ -1,9 +1,8 @@
 import { useState } from "react";
-import { ArrowLeft, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Slider } from "@/components/ui/slider";
 import {
   Select,
   SelectContent,
@@ -22,6 +21,8 @@ const CATEGORIES = [
 
 const CONDITIONS = ["New", "Like New", "Good", "Fair", "Poor"];
 
+const POLAROID_ROTATIONS = [-5, 3, -2, 6, -4, 2];
+
 interface DetailsReviewProps {
   groups: ItemGroup[];
   setGroups: React.Dispatch<React.SetStateAction<ItemGroup[]>>;
@@ -30,6 +31,14 @@ interface DetailsReviewProps {
   onBack: () => void;
   onComplete: () => void;
 }
+
+/** Slider comment based on position */
+const getSliderComment = (price: number, min: number, max: number) => {
+  const pct = (price - min) / (max - min);
+  if (pct < 0.33) return { text: "Priced to fly! ⚡️", align: "left" };
+  if (pct < 0.66) return { text: "The Toronto Sweet Spot 🎯", align: "center" };
+  return { text: "Worth the wait 💰", align: "right" };
+};
 
 const DetailsReview = ({
   groups,
@@ -59,30 +68,23 @@ const DetailsReview = ({
     );
   };
 
-  const AiBadge = ({ groupId, field }: { groupId: string; field: string }) => {
+  const AiHighlight = ({ groupId, field }: { groupId: string; field: string }) => {
     const group = groups.find((g) => g.id === groupId);
     if (!group || group.editedFields.has(field)) return null;
     return (
-      <span className="text-[9px] italic text-muted-foreground/50 font-normal transition-opacity duration-300">
-        ai
-      </span>
+      <Sparkles className="w-3 h-3 text-primary inline-block ml-1" />
     );
   };
 
   return (
     <div className="pb-28">
       {/* Header */}
-      <div className="flex items-start justify-between mb-2">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">
-            Review Your Listings
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Edit anything. Adjust prices. Then post everywhere.
-          </p>
-        </div>
-        <p className="text-xl font-bold text-primary whitespace-nowrap mt-1">
-          Total: ${totalValue.toLocaleString()}
+      <div className="mb-2">
+        <h2 className="text-3xl font-bold tracking-tight text-foreground">
+          Review Your Listings
+        </h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          Edit anything. Adjust prices. Then post everywhere.
         </p>
       </div>
 
@@ -99,16 +101,20 @@ const DetailsReview = ({
         const pricing = pricingData.find((p) => p.groupId === group.id);
         if (!pricing) return null;
 
+        const sliderPct = ((pricing.recommended - pricing.min) / (pricing.max - pricing.min)) * 100;
+        const comment = getSliderComment(pricing.recommended, pricing.min, pricing.max);
+
         return (
           <section
             key={group.id}
-            className={`py-12 ${idx > 0 ? "border-t border-border/50" : ""}`}
+            className={`py-16 ${idx > 0 ? "border-t border-border/30" : ""}`}
           >
+            {/* Asymmetric layout: 60/40 */}
             <div className="flex gap-10">
-              {/* Left column: photos */}
-              <div className="w-1/2 flex-shrink-0">
-                {/* Editable title */}
-                <div className="mb-5">
+              {/* Left column: photos — 60% */}
+              <div className="w-[60%] flex-shrink-0 relative">
+                {/* Overlapping title */}
+                <div className="relative z-10 mb-[-1.2rem]">
                   {editingTitleId === group.id ? (
                     <Input
                       value={group.title}
@@ -116,11 +122,11 @@ const DetailsReview = ({
                       onBlur={() => setEditingTitleId(null)}
                       onKeyDown={(e) => e.key === "Enter" && setEditingTitleId(null)}
                       autoFocus
-                      className="text-2xl font-bold tracking-tight border-none p-0 h-auto bg-transparent focus-visible:ring-0 text-foreground"
+                      className="text-5xl font-black tracking-tighter border-none p-0 h-auto bg-transparent focus-visible:ring-0 text-foreground uppercase"
                     />
                   ) : (
                     <h3
-                      className="text-2xl font-bold tracking-tight text-foreground cursor-text hover:text-primary transition-colors duration-200"
+                      className="text-5xl font-black tracking-tighter text-foreground cursor-text hover:text-foreground/80 transition-colors duration-200 uppercase leading-[0.95]"
                       onClick={() => setEditingTitleId(group.id)}
                     >
                       {group.title}
@@ -128,50 +134,54 @@ const DetailsReview = ({
                   )}
                 </div>
 
-                {/* Cover photo */}
+                {/* Main photo — physical print style */}
                 {group.photos[0] && (
-                  <div className="relative mb-3">
+                  <div className="relative">
                     <img
                       src={group.photos[0]}
                       alt={group.title}
-                      className="w-full aspect-[4/3] object-cover rounded-lg"
+                      className="w-full aspect-[4/3] object-cover rounded-lg ring-8 ring-white"
+                      style={{
+                        boxShadow: "0 8px 40px rgba(0,0,0,0.12), 0 2px 10px rgba(0,0,0,0.06)",
+                      }}
                     />
-                    <span className="absolute top-3 left-3 bg-card/90 backdrop-blur-sm text-foreground text-[10px] font-medium uppercase tracking-widest px-2.5 py-1 rounded-full">
-                      Cover
-                    </span>
                   </div>
                 )}
 
-                {/* Thumbnail row */}
+                {/* Polaroid thumbnails — fanned out */}
                 {group.photos.length > 1 && (
-                  <div className="flex gap-2 flex-wrap">
+                  <div className="flex gap-3 mt-6 ml-2">
                     {group.photos.slice(1).map((photo, i) => (
-                      <img
+                      <div
                         key={i}
-                        src={photo}
-                        alt={`${group.title} ${i + 2}`}
-                        className="w-20 h-20 rounded-lg object-cover border border-border/40 hover:ring-2 hover:ring-primary/30 transition-all"
-                      />
+                        className="bg-white p-1.5 pb-6 rounded-sm shadow-md hover:-translate-y-2 hover:shadow-lg transition-all duration-200 cursor-pointer"
+                        style={{
+                          transform: `rotate(${POLAROID_ROTATIONS[i % POLAROID_ROTATIONS.length]}deg)`,
+                        }}
+                      >
+                        <img
+                          src={photo}
+                          alt={`${group.title} ${i + 2}`}
+                          className="w-20 h-20 object-cover"
+                        />
+                      </div>
                     ))}
                   </div>
                 )}
               </div>
 
-              {/* Right column: details + pricing */}
-              <div className="flex-1 space-y-6">
-                {/* Category */}
+              {/* Right column: details + pricing — 40% */}
+              <div className="flex-1 space-y-5 pt-16">
+                {/* Category — margin note style */}
                 <div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <label className="text-xs uppercase tracking-widest text-muted-foreground">
-                      Category
-                    </label>
-                    <AiBadge groupId={group.id} field="category" />
-                  </div>
+                  <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-1">
+                    Category <AiHighlight groupId={group.id} field="category" />
+                  </label>
                   <Select
                     value={group.category}
                     onValueChange={(v) => handleFieldChange(group.id, "category", v)}
                   >
-                    <SelectTrigger className="text-sm h-9 bg-transparent border-border/30 focus:border-primary hover:border-border transition-colors">
+                    <SelectTrigger className="text-sm h-9 bg-transparent border-0 border-b border-foreground/15 rounded-none px-0 focus:ring-0 focus:border-foreground/40 hover:border-foreground/30 transition-colors shadow-none">
                       <SelectValue placeholder="Select category" />
                     </SelectTrigger>
                     <SelectContent>
@@ -184,17 +194,14 @@ const DetailsReview = ({
 
                 {/* Condition */}
                 <div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <label className="text-xs uppercase tracking-widest text-muted-foreground">
-                      Condition
-                    </label>
-                    <AiBadge groupId={group.id} field="condition" />
-                  </div>
+                  <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-1">
+                    Condition <AiHighlight groupId={group.id} field="condition" />
+                  </label>
                   <Select
                     value={group.condition}
                     onValueChange={(v) => handleFieldChange(group.id, "condition", v)}
                   >
-                    <SelectTrigger className="text-sm h-9 bg-transparent border-border/30 focus:border-primary hover:border-border transition-colors">
+                    <SelectTrigger className="text-sm h-9 bg-transparent border-0 border-b border-foreground/15 rounded-none px-0 focus:ring-0 focus:border-foreground/40 hover:border-foreground/30 transition-colors shadow-none">
                       <SelectValue placeholder="Select condition" />
                     </SelectTrigger>
                     <SelectContent>
@@ -207,80 +214,92 @@ const DetailsReview = ({
 
                 {/* Size */}
                 <div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <label className="text-xs uppercase tracking-widest text-muted-foreground">
-                      Size
-                    </label>
-                    <AiBadge groupId={group.id} field="size" />
-                  </div>
+                  <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-1">
+                    Size <AiHighlight groupId={group.id} field="size" />
+                  </label>
                   <Input
                     value={group.size}
                     onChange={(e) => handleFieldChange(group.id, "size", e.target.value)}
-                    className="text-sm h-9 bg-transparent border-border/30 focus-visible:border-primary hover:border-border transition-colors"
+                    className="text-sm h-9 bg-transparent border-0 border-b border-foreground/15 rounded-none px-0 focus-visible:ring-0 focus-visible:border-foreground/40 hover:border-foreground/30 transition-colors shadow-none"
                   />
                 </div>
 
-                {/* Description */}
+                {/* Description — sticky note style */}
                 <div>
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <label className="text-xs uppercase tracking-widest text-muted-foreground">
-                      Description
-                    </label>
-                    <AiBadge groupId={group.id} field="description" />
+                  <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-1">
+                    Description <AiHighlight groupId={group.id} field="description" />
+                  </label>
+                  <div className="relative mt-1.5">
+                    <div className="absolute -top-1.5 left-4 w-10 h-3 bg-mustard/40 rounded-sm z-10" style={{ transform: "rotate(-2deg)" }} />
+                    <Textarea
+                      value={group.description}
+                      onChange={(e) => handleFieldChange(group.id, "description", e.target.value)}
+                      className="text-sm bg-sage/10 border-0 rounded-lg px-4 pt-4 pb-3 focus-visible:ring-0 min-h-[100px] resize-none shadow-none"
+                    />
                   </div>
-                  <Textarea
-                    value={group.description}
-                    onChange={(e) => handleFieldChange(group.id, "description", e.target.value)}
-                    className="text-sm bg-transparent border-border/30 focus-visible:border-primary hover:border-border transition-colors min-h-[100px] resize-none"
-                  />
                 </div>
 
-                {/* Separator */}
-                <div className="border-t border-border/30" />
-
-                {/* Pricing section */}
-                <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <label className="text-xs uppercase tracking-widest text-muted-foreground">
-                      Suggested Price
-                    </label>
-                    <AiBadge groupId={group.id} field="price" />
+                {/* ===== PRICING STUDIO ===== */}
+                <div className="relative mt-8 pt-6">
+                  {/* Confidence tape */}
+                  <div
+                    className="absolute -top-1 -right-2 bg-mustard/50 px-3 py-1 rounded-sm z-20 shadow-sm"
+                    style={{ transform: "rotate(2deg)" }}
+                  >
+                    <span className="text-[10px] font-bold text-foreground">
+                      {pricing.confidence}% confidence
+                    </span>
                   </div>
 
-                  <p className="text-4xl font-bold text-primary mb-4">
+                  <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground block mb-2">
+                    Suggested Price
+                  </label>
+
+                  {/* Massive terracotta price */}
+                  <p className="text-7xl font-black text-primary leading-none mb-6 tracking-tight">
                     ${pricing.recommended}
                   </p>
 
-                  {/* Price slider */}
+                  {/* Handwritten slider comment */}
+                  <div className="relative h-8 mb-1">
+                    <p
+                      key={comment.text}
+                      className="absolute text-lg text-foreground/70 animate-fade-in whitespace-nowrap"
+                      style={{
+                        fontFamily: "'Gaegu', cursive",
+                        left: comment.align === "left" ? "0" : comment.align === "center" ? "50%" : undefined,
+                        right: comment.align === "right" ? "0" : undefined,
+                        transform: comment.align === "center" ? "translateX(-50%)" : undefined,
+                      }}
+                    >
+                      {comment.text}
+                    </p>
+                  </div>
+
+                  {/* Terracotta slider */}
                   <div className="mb-2">
-                    <Slider
-                      value={[pricing.recommended]}
+                    <input
+                      type="range"
                       min={pricing.min}
                       max={pricing.max}
-                      step={1}
-                      onValueChange={(val) => handlePriceChange(group.id, val[0])}
-                      className="w-full"
+                      value={pricing.recommended}
+                      onChange={(e) => handlePriceChange(group.id, Number(e.target.value))}
+                      className="pricing-slider w-full"
                     />
                   </div>
-                  <div className="flex justify-between mb-4">
-                    <span className="text-xs text-muted-foreground">
+                  <div className="flex justify-between">
+                    <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
                       Quick Sale · ${pricing.min}
                     </span>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[10px] uppercase tracking-[0.15em] text-muted-foreground">
                       Max Value · ${pricing.max}
                     </span>
                   </div>
 
                   {/* Stats */}
-                  <p className="text-sm text-muted-foreground">
-                    {pricing.confidence}% confidence · {pricing.sampleCount} local sales · avg {pricing.daysToSell} days to sell
+                  <p className="text-xs text-muted-foreground mt-4">
+                    {pricing.sampleCount} local sales · avg {pricing.daysToSell} days to sell
                   </p>
-
-                  {pricing.confidence < 80 && (
-                    <p className="text-xs italic text-muted-foreground/70 mt-1">
-                      Still learning prices in your area
-                    </p>
-                  )}
                 </div>
               </div>
             </div>
@@ -288,21 +307,24 @@ const DetailsReview = ({
         );
       })}
 
-      {/* Sticky bottom bar */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-card border-t border-border shadow-lg">
+      {/* Sticky bottom bar — premium CTA */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-md border-t border-border">
         <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <p className="text-sm font-medium text-foreground">
-            {groups.length} items · Total:{" "}
-            <span className="text-primary font-bold">
+          <p className="text-lg font-bold text-foreground">
+            Total:{" "}
+            <span className="text-primary">
               ${totalValue.toLocaleString()}
             </span>
           </p>
           <Button
             onClick={onComplete}
-            className="rounded-full px-8 h-11 text-base font-bold bg-foreground text-background hover:bg-foreground/90 shadow-lg gap-2"
-            style={{ fontFamily: "'Gaegu', cursive" }}
+            className="rounded-full px-10 h-12 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 gap-2 transition-all"
+            style={{
+              fontFamily: "'Gaegu', cursive",
+              boxShadow: "0 4px 20px hsl(18, 60%, 50%, 0.35)",
+            }}
           >
-            Post to Platforms <ArrowRight className="w-4 h-4" />
+            Post to Platforms <ArrowRight className="w-5 h-5" />
           </Button>
         </div>
       </div>
