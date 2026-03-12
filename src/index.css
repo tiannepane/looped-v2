@@ -301,3 +301,44 @@
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-16px); }
 }
+
+/* Gingham tablecloth */
+.tablecloth-gingham {
+  background-color: hsl(40, 30%, 96%);
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      hsla(20, 20%, 75%, 0.06) 0px,
+      hsla(20, 20%, 75%, 0.06) 1px,
+      transparent 1px,
+      transparent 24px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      hsla(20, 20%, 75%, 0.06) 0px,
+      hsla(20, 20%, 75%, 0.06) 1px,
+      transparent 1px,
+      transparent 24px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      hsla(30, 25%, 70%, 0.04) 0px,
+      hsla(30, 25%, 70%, 0.04) 1px,
+      transparent 1px,
+      transparent 48px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      hsla(30, 25%, 70%, 0.04) 0px,
+      hsla(30, 25%, 70%, 0.04) 1px,
+      transparent 1px,
+      transparent 48px
+    );
+}
+
+/* Photo delete shake */
+@keyframes shake {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-3deg); }
+  75% { transform: rotate(3deg); }
+}
