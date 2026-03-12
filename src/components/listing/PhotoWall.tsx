@@ -472,17 +472,17 @@ const PhotoWall = ({
             );
           })}
 
-          {/* Empty "Add Item" slots to fill 3x2 grid */}
+          {/* Empty coaster slots */}
           {Array.from({ length: Math.max(0, MAX_TABLE_ITEMS - tableGroups.length) }).map((_, i) => {
             const slotKey = `empty-${i}`;
-            const isActiveSlot = i === 0; // First empty slot is the "new item" slot
+            const isActiveSlot = i === 0;
             const isDragOverSlot = dragOverTarget === "new-item" && isActiveSlot;
 
             return (
               <div
                 key={slotKey}
-                className={`rounded-2xl border-2 border-dashed transition-all duration-200 ease-out flex flex-col items-center justify-center min-h-[240px] cursor-pointer
-                  ${isDragOverSlot ? "border-foreground/40 bg-card/30" : "border-muted-foreground/[0.12] hover:border-muted-foreground/30"}
+                className={`rounded-[40px] border-2 border-dashed transition-all duration-200 ease-out flex flex-col items-center justify-center min-h-[260px] cursor-pointer
+                  ${isDragOverSlot ? "border-foreground/30 bg-white/30" : "border-muted-foreground/[0.1] hover:border-muted-foreground/20"}
                 `}
                 onDragOver={isActiveSlot ? (e) => onDragOver(e, "new-item") : undefined}
                 onDragLeave={isActiveSlot ? onDragLeave : undefined}
