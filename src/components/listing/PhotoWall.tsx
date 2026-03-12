@@ -316,20 +316,20 @@ const PhotoWall = ({
                     <X className="w-3.5 h-3.5" />
                   </button>
 
-                  {/* Title + Price row */}
-                  <div className="flex items-start justify-between mb-3 pr-8">
-                    <div className="flex-1 min-w-0">
-                      <EditableTitle
-                        value={group.title}
-                        onChange={(v) => updateGroupTitle(group.id, v)}
-                      />
-                    </div>
-                    {pricing && (
-                      <span className="text-base font-bold text-primary ml-2 flex-shrink-0">
-                        ${pricing.recommended}
-                      </span>
-                    )}
+                  {/* Title */}
+                  <div className="mb-1 pr-8">
+                    <EditableTitle
+                      value={group.title}
+                      onChange={(v) => updateGroupTitle(group.id, v)}
+                    />
                   </div>
+
+                  {/* Price on its own line */}
+                  {pricing && (
+                    <span className="text-base font-bold text-primary block mb-2">
+                      ${pricing.recommended}
+                    </span>
+                  )}
 
                   <div className="border-b border-foreground/[0.06] mb-3" />
 
