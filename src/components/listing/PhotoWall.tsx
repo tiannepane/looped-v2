@@ -339,13 +339,24 @@ const PhotoWall = ({
 
       {/* Gingham tablecloth area */}
       <div className="mx-4 md:mx-8 lg:mx-16 rounded-2xl p-8 relative tablecloth-gingham">
-        {/* 2-column, max 3 rows (6 items) grid */}
-        <div className="grid grid-cols-2 gap-6">
+        {/* Environmental props */}
+        <div className="absolute top-6 right-8 w-20 h-20 rounded-full pointer-events-none opacity-[0.07]"
+          style={{
+            background: "radial-gradient(circle, hsl(25, 40%, 40%) 0%, transparent 60%)",
+            filter: "blur(4px)",
+          }}
+        />
+        <div className="absolute bottom-10 left-6 pointer-events-none opacity-[0.12] text-xl" style={{ transform: "rotate(-15deg)" }}>
+          ✏️
+        </div>
+
+        {/* 2-column grid */}
+        <div className="grid grid-cols-2 gap-8">
           {/* Render actual coasters */}
           {tableGroups.map((group, gi) => {
             const pricing = pricingData.find((p) => p.groupId === group.id);
             const isDragOver = dragOverTarget === group.id;
-            const isHovered = hoveredCoaster === group.id;
+            const PHOTO_ROTATIONS = [-3, 4, -1.5, 2.5, -4, 1];
 
             return (
               <div
@@ -354,13 +365,15 @@ const PhotoWall = ({
                 onMouseEnter={() => setHoveredCoaster(group.id)}
                 onMouseLeave={() => setHoveredCoaster(null)}
               >
-                {/* Clean coaster — no tape */}
+                {/* Physical coaster */}
                 <div
-                  className={`rounded-2xl p-5 relative min-h-[240px] transition-all duration-200 ease-out backdrop-blur-md
-                    ${isDragOver ? "ring-2 ring-foreground/30 bg-card/80" : "bg-card/60"}
+                  className={`rounded-[40px] p-6 relative min-h-[260px] transition-all duration-200 ease-out border-b-[6px] border-black/[0.05]
+                    ${isDragOver ? "ring-2 ring-foreground/20" : ""}
                   `}
                   style={{
-                    boxShadow: "0 4px 20px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04)",
+                    background: "hsl(38, 20%, 95%)",
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E")`,
+                    boxShadow: "0 4px 10px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.04)",
                   }}
                   onDragOver={(e) => onDragOver(e, group.id)}
                   onDragLeave={onDragLeave}
@@ -370,74 +383,87 @@ const PhotoWall = ({
                   {/* Delete coaster button */}
                   <button
                     onClick={() => deleteGroup(group.id)}
-                    className="absolute top-3 right-3 w-7 h-7 rounded-full bg-card text-muted-foreground flex items-center justify-center
+                    className="absolute top-4 right-4 w-7 h-7 rounded-full bg-white/60 text-muted-foreground flex items-center justify-center
                       opacity-0 group-hover/zone:opacity-100 transition-opacity duration-200 z-40 shadow-sm
                       hover:bg-destructive hover:text-destructive-foreground"
                   >
                     <X className="w-3.5 h-3.5" />
                   </button>
 
-                  {/* Title */}
-                  <div className="mb-1 pr-8">
+                  {/* Label maker title */}
+                  <div className="mb-3 pr-8">
                     <EditableTitle
                       value={group.title}
                       onChange={(v) => updateGroupTitle(group.id, v)}
                     />
                   </div>
 
-                  {/* Price on its own line */}
+                  {/* Price sticker — red handwritten */}
                   {pricing && (
-                    <span className="text-base font-bold text-primary block mb-2">
-                      ${pricing.recommended}
-                    </span>
+                    <div
+                      className="absolute top-4 right-14 bg-destructive/90 text-white px-2.5 py-1 rounded-full shadow-md z-20"
+                      style={{ transform: "rotate(8deg)" }}
+                    >
+                      <span className="text-sm font-black" style={{ fontFamily: "'Gaegu', cursive" }}>
+                        ${pricing.recommended}
+                      </span>
+                    </div>
                   )}
 
-                  <div className="border-b border-foreground/[0.06] mb-3" />
-
-                  {/* Photos — fan-out on hover */}
+                  {/* Photos — polaroid style with tossed look */}
                   {group.photos.length > 0 ? (
                     <div
-                      className="flex items-center justify-center min-h-[120px] overflow-hidden cursor-pointer"
+                      className="flex items-center justify-center min-h-[140px] cursor-pointer mt-2"
                       onClick={() => setExpandedCoaster(expandedCoaster === group.id ? null : group.id)}
                     >
-                      {/* Stacked preview — show max 3 overlapping */}
                       <div className="flex items-center justify-center">
-                        {group.photos.slice(0, 3).map((photo, pi) => (
-                          <div
-                            key={pi}
-                            className="relative flex-shrink-0"
-                            style={{
-                              marginLeft: pi > 0 ? '-16px' : '0',
-                              transform: `rotate(${pi % 2 === 0 ? -3 : 3}deg)`,
-                              zIndex: 3 - pi,
-                            }}
-                          >
-                            <img
-                              src={photo}
-                              alt={`${group.title} ${pi + 1}`}
-                              draggable
-                              onDragStart={(e) => {
-                                e.dataTransfer.effectAllowed = "move";
-                                onDragStartHandler(photo, group.id);
+                        {group.photos.slice(0, 3).map((photo, pi) => {
+                          const rot = PHOTO_ROTATIONS[(gi * 3 + pi) % PHOTO_ROTATIONS.length];
+                          return (
+                            <div
+                              key={pi}
+                              className="relative flex-shrink-0"
+                              style={{
+                                marginLeft: pi > 0 ? '-12px' : '0',
+                                transform: `rotate(${rot}deg)`,
+                                zIndex: 3 - pi,
                               }}
-                              className="w-20 h-24 object-cover rounded-lg shadow-md cursor-grab active:cursor-grabbing ring-2 ring-white"
-                            />
-                          </div>
-                        ))}
+                            >
+                              {/* Polaroid frame */}
+                              <div className="bg-white p-1 pb-4 rounded-sm shadow-lg">
+                                <img
+                                  src={photo}
+                                  alt={`${group.title} ${pi + 1}`}
+                                  draggable
+                                  onDragStart={(e) => {
+                                    e.stopPropagation();
+                                    e.dataTransfer.effectAllowed = "move";
+                                    onDragStartHandler(photo, group.id);
+                                  }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="w-[72px] h-[88px] object-cover cursor-grab active:cursor-grabbing"
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
                         {group.photos.length > 3 && (
-                          <div className="w-20 h-24 rounded-lg bg-foreground/5 flex items-center justify-center text-xs font-medium text-muted-foreground shadow-sm ring-2 ring-white"
-                            style={{ marginLeft: '-16px', zIndex: 0 }}
+                          <div
+                            className="bg-white/80 p-1 pb-4 rounded-sm shadow-md flex items-center justify-center"
+                            style={{ marginLeft: '-12px', zIndex: 0, transform: "rotate(2deg)" }}
                           >
-                            +{group.photos.length - 3}
+                            <div className="w-[72px] h-[88px] flex items-center justify-center text-xs font-medium text-muted-foreground">
+                              +{group.photos.length - 3}
+                            </div>
                           </div>
                         )}
                       </div>
-                      <span className="text-[10px] text-muted-foreground/50 absolute bottom-2 right-3">
-                        {group.photos.length} photo{group.photos.length !== 1 ? "s" : ""} · tap to expand
+                      <span className="text-[9px] text-muted-foreground/40 absolute bottom-3 right-5" style={{ fontFamily: "'Gaegu', cursive" }}>
+                        tap to fan out
                       </span>
                     </div>
                   ) : (
-                    <div className="flex items-center justify-center min-h-[150px] text-sm text-muted-foreground italic">
+                    <div className="flex items-center justify-center min-h-[140px] text-sm text-muted-foreground/40 italic" style={{ fontFamily: "'Gaegu', cursive" }}>
                       Drag photos here
                     </div>
                   )}
