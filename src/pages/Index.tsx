@@ -274,7 +274,7 @@ const Index = () => {
         <Link to="/" className="text-xl font-black tracking-tight text-foreground">
           looped
         </Link>
-        <Button asChild variant="default" size="sm" className="rounded-lg">
+        <Button asChild size="sm" className="bg-foreground text-background hover:bg-foreground/90 rounded-full font-bold" style={{ fontFamily: "'Gaegu', cursive" }}>
           <Link to="/new">Start Selling</Link>
         </Button>
       </nav>
