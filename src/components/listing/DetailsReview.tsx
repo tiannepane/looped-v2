@@ -227,7 +227,7 @@ const DetailsReview = ({
                 {/* Postal Code */}
                 <div>
                   <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-1">
-                    Postal Code (FSA)
+                    Postal Code (FSA) <span className="text-destructive">*</span>
                   </label>
                   <Input
                     value={group.postalCode || ""}
