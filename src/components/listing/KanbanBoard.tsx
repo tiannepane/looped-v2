@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Check, ChevronDown, ChevronUp, X, ThumbsUp, ThumbsDown, SkipForward } from "lucide-react";
+import { Check, X, ChevronDown, ChevronUp, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -10,6 +10,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 export interface ItemGroup {
   id: string;
@@ -54,16 +59,17 @@ interface KanbanBoardProps {
 }
 
 const KanbanBoard = ({ groups, setGroups, ungroupedPhotos, setUngroupedPhotos, onContinue }: KanbanBoardProps) => {
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [swipeDirection, setSwipeDirection] = useState<"left" | "right" | null>(null);
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  const [movePhotosOpen, setMovePhotosOpen] = useState(false);
   const startX = useRef(0);
   const cardRef = useRef<HTMLDivElement>(null);
 
   const reviewableGroups = groups.filter((g) => !g.confirmed && !g.rejected);
+  const skippedGroups = groups.filter((g) => g.rejected);
   const confirmedCount = groups.filter((g) => g.confirmed).length;
-  const rejectedCount = groups.filter((g) => g.rejected).length;
+  const rejectedCount = skippedGroups.length;
   const reviewedCount = confirmedCount + rejectedCount;
   const allReviewed = groups.length > 0 && reviewableGroups.length === 0;
   const currentGroup = reviewableGroups[0];
@@ -84,6 +90,7 @@ const KanbanBoard = ({ groups, setGroups, ungroupedPhotos, setUngroupedPhotos, o
       callback();
       setSwipeDirection(null);
       setDragX(0);
+      setMovePhotosOpen(false);
     }, 300);
   };
 
@@ -98,8 +105,11 @@ const KanbanBoard = ({ groups, setGroups, ungroupedPhotos, setUngroupedPhotos, o
     if (!currentGroup) return;
     animateSwipe("left", () => {
       setGroups((prev) => prev.map((g) => (g.id === currentGroup.id ? { ...g, rejected: true } : g)));
-      setUngroupedPhotos((prev) => [...prev, ...currentGroup.photos]);
     });
+  };
+
+  const restoreItem = (groupId: string) => {
+    setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, rejected: false } : g)));
   };
 
   // Touch / mouse drag handlers
@@ -138,6 +148,34 @@ const KanbanBoard = ({ groups, setGroups, ungroupedPhotos, setUngroupedPhotos, o
 
   const getOverlayOpacity = () => Math.min(Math.abs(dragX) / 150, 1);
 
+  // Photo drag-and-drop between groups
+  const onPhotoDragStart = (e: React.DragEvent, photo: string, sourceGroupId: string) => {
+    e.dataTransfer.setData("photo", photo);
+    e.dataTransfer.setData("sourceGroupId", sourceGroupId);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const onPhotoDrop = (e: React.DragEvent, targetGroupId: string) => {
+    e.preventDefault();
+    const photo = e.dataTransfer.getData("photo");
+    const sourceGroupId = e.dataTransfer.getData("sourceGroupId");
+    if (!photo || !sourceGroupId || sourceGroupId === targetGroupId) return;
+
+    setGroups((prev) =>
+      prev.map((g) => {
+        if (g.id === sourceGroupId) {
+          return { ...g, photos: g.photos.filter((p) => p !== photo) };
+        }
+        if (g.id === targetGroupId) {
+          return { ...g, photos: [...g.photos, photo] };
+        }
+        return g;
+      })
+    );
+  };
+
+  const otherGroups = currentGroup ? groups.filter((g) => g.id !== currentGroup.id) : [];
+
   return (
     <div>
       <h2 className="text-3xl font-black tracking-tight text-foreground mb-2">Review Items</h2>
@@ -166,7 +204,7 @@ const KanbanBoard = ({ groups, setGroups, ungroupedPhotos, setUngroupedPhotos, o
       {/* Card stack */}
       {!allReviewed && currentGroup ? (
         <div className="flex flex-col items-center mb-8">
-          <div className="relative w-full max-w-md h-[520px]">
+          <div className="relative w-full max-w-md h-[560px]">
             {/* Background cards for stack effect */}
             {reviewableGroups.length > 2 && (
               <div className="absolute inset-0 mx-4 mt-4 bg-card border border-border rounded-xl opacity-40" />
@@ -212,15 +250,20 @@ const KanbanBoard = ({ groups, setGroups, ungroupedPhotos, setUngroupedPhotos, o
 
               {/* Card content */}
               <div className="p-5 h-full overflow-y-auto">
-                {/* Photos */}
-                <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
+                {/* Photos (draggable) */}
+                <div className="flex gap-2 mb-2 overflow-x-auto pb-2">
                   {currentGroup.photos.map((photo, i) => (
                     <img
                       key={i}
                       src={photo}
                       alt={`${currentGroup.title} ${i + 1}`}
-                      className="w-20 h-20 object-cover rounded-lg border border-border flex-shrink-0"
-                      draggable={false}
+                      className="w-20 h-20 object-cover rounded-lg border border-border flex-shrink-0 cursor-grab active:cursor-grabbing hover:ring-2 hover:ring-primary/50 transition-all"
+                      draggable
+                      onDragStart={(e) => {
+                        e.stopPropagation();
+                        onPhotoDragStart(e, photo, currentGroup.id);
+                      }}
+                      onPointerDown={(e) => e.stopPropagation()}
                     />
                   ))}
                   {currentGroup.photos.length === 0 && (
@@ -229,6 +272,45 @@ const KanbanBoard = ({ groups, setGroups, ungroupedPhotos, setUngroupedPhotos, o
                     </div>
                   )}
                 </div>
+
+                {/* Move photo to... collapsible */}
+                {otherGroups.length > 0 && currentGroup.photos.length > 0 && (
+                  <Collapsible open={movePhotosOpen} onOpenChange={setMovePhotosOpen}>
+                    <CollapsibleTrigger
+                      className="flex items-center gap-1 text-[10px] uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors mb-3"
+                      onPointerDown={(e) => e.stopPropagation()}
+                    >
+                      {movePhotosOpen ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+                      Drag photo to another item
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <div
+                        className="flex gap-2 overflow-x-auto pb-3 mb-2"
+                        onPointerDown={(e) => e.stopPropagation()}
+                      >
+                        {otherGroups.map((g) => (
+                          <div
+                            key={g.id}
+                            className="flex-shrink-0 w-24 p-2 bg-accent/50 border-2 border-dashed border-border rounded-lg text-center hover:border-primary/50 transition-colors"
+                            onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add("border-primary", "bg-primary/10"); }}
+                            onDragLeave={(e) => { e.currentTarget.classList.remove("border-primary", "bg-primary/10"); }}
+                            onDrop={(e) => {
+                              e.currentTarget.classList.remove("border-primary", "bg-primary/10");
+                              onPhotoDrop(e, g.id);
+                            }}
+                          >
+                            {g.photos.length > 0 ? (
+                              <img src={g.photos[0]} alt={g.title} className="w-full h-12 object-cover rounded mb-1" draggable={false} />
+                            ) : (
+                              <div className="w-full h-12 bg-muted rounded mb-1" />
+                            )}
+                            <span className="text-[9px] font-medium text-muted-foreground leading-tight line-clamp-2">{g.title}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                )}
 
                 {/* Title */}
                 <Input
@@ -353,6 +435,38 @@ const KanbanBoard = ({ groups, setGroups, ungroupedPhotos, setUngroupedPhotos, o
           <p className="text-muted-foreground mb-1">
             {confirmedCount} approved · {rejectedCount} skipped
           </p>
+        </div>
+      )}
+
+      {/* Skipped Items Tray */}
+      {skippedGroups.length > 0 && (
+        <div className="mb-8 max-w-md mx-auto">
+          <h4 className="text-xs uppercase tracking-widest text-muted-foreground mb-3 font-medium">
+            Skipped items · tap to restore
+          </h4>
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {skippedGroups.map((g) => (
+              <button
+                key={g.id}
+                onClick={() => restoreItem(g.id)}
+                className="flex-shrink-0 w-24 bg-card border border-border rounded-lg p-2 hover:border-primary/50 hover:shadow-md transition-all group"
+              >
+                {g.photos.length > 0 ? (
+                  <img src={g.photos[0]} alt={g.title} className="w-full h-16 object-cover rounded mb-1.5" />
+                ) : (
+                  <div className="w-full h-16 bg-accent rounded mb-1.5 flex items-center justify-center">
+                    <X className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                )}
+                <span className="text-[10px] font-medium text-muted-foreground leading-tight line-clamp-2 group-hover:text-foreground transition-colors">
+                  {g.title}
+                </span>
+                <div className="flex items-center justify-center gap-0.5 mt-1 text-[9px] text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                  <RotateCcw className="w-2.5 h-2.5" /> restore
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       )}
 
