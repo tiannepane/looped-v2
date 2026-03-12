@@ -70,7 +70,7 @@ const CalendarAnimation = () => {
 
   return (
     <div
-      className="w-56 lg:w-64 bg-card rounded-2xl shadow-xl overflow-hidden select-none"
+      className="w-[28rem] lg:w-[32rem] bg-card rounded-2xl shadow-xl overflow-hidden select-none"
       style={{
         transform: "rotate(2deg)",
         animation: "calendar-float 4s ease-in-out infinite",
@@ -80,33 +80,33 @@ const CalendarAnimation = () => {
         className={`transition-opacity duration-500 ${fading ? "opacity-0" : "opacity-100"}`}
       >
         {/* Color strip */}
-        <div className="h-8 rounded-t-2xl" style={{ background: moment.color }} />
+        <div className="h-12 rounded-t-2xl" style={{ background: moment.color }} />
 
-        <div className="px-5 pt-3 pb-5">
+        <div className="px-8 pt-5 pb-8">
           {/* Month */}
           <p
-            className="text-[11px] uppercase tracking-[0.2em] font-medium text-center mb-3"
+            className="text-sm uppercase tracking-[0.2em] font-medium text-center mb-4"
             style={{ color: moment.color }}
           >
             {moment.month}
           </p>
 
           {/* Day-of-week headers */}
-          <div className="grid grid-cols-7 gap-y-1.5 mb-1">
+          <div className="grid grid-cols-7 gap-y-2.5 mb-2">
             {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-              <span key={i} className="text-[9px] text-muted-foreground/50 text-center font-medium">
+              <span key={i} className="text-xs text-muted-foreground/50 text-center font-medium">
                 {d}
               </span>
             ))}
           </div>
 
           {/* Calendar grid */}
-          <div className="grid grid-cols-7 gap-y-1.5">
+          <div className="grid grid-cols-7 gap-y-2.5">
             {CALENDAR_DAYS.flat().map((day, i) => {
               const isCircled = day === moment.circleDay;
               return (
-                <div key={i} className="relative flex items-center justify-center h-6">
-                  <span className={`text-[10px] ${day ? "text-foreground/30" : ""} text-center`}>
+                <div key={i} className="relative flex items-center justify-center h-8">
+                  <span className={`text-sm ${day ? "text-foreground/30" : ""} text-center`}>
                     {day ?? ""}
                   </span>
                   {isCircled && phase !== "circle" && (
@@ -157,10 +157,10 @@ const CalendarAnimation = () => {
           </div>
 
           {/* Typewriter label */}
-          <div className="mt-3 h-5 flex items-center justify-center">
+          <div className="mt-4 h-7 flex items-center justify-center">
             <span
-              className="text-xs font-semibold tracking-tight"
-              style={{ color: moment.color }}
+              className="text-base font-semibold tracking-tight"
+              style={{ color: moment.color, fontFamily: "'Caveat', cursive" }}
             >
               {moment.label.slice(0, typedChars)}
               {phase === "type" && (
@@ -290,8 +290,8 @@ const Index = () => {
             >
               MAKE IT<br />COUNT
             </h1>
-            <p className="text-xl font-normal text-muted-foreground mt-6 max-w-lg">
-              Your stuff changes when your life does. Make it count.
+            <p className="text-xl text-muted-foreground mt-6 max-w-lg" style={{ fontFamily: "'Caveat', cursive", fontSize: "1.6rem" }}>
+              Your stuff changes when your life does.
             </p>
             <div className="mt-10">
               <Button
