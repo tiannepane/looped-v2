@@ -26,7 +26,7 @@ const steps = [
 
 const soldItems = [
   { name: "IKEA Kallax Shelf", price: 85, days: 2, img: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?w=300&h=225&fit=crop" },
-  { name: "Mechanical Keyboard", price: 120, days: 1, img: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=300&h=225&fit=crop" },
+  { name: "Lightly Used Magic Keyboard ", price: 120, days: 1, img: "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=300&h=225&fit=crop" },
   { name: "Vintage Desk Lamp", price: 45, days: 3, img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=225&fit=crop" },
   { name: "Nike Air Max 90", price: 95, days: 1, img: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&h=225&fit=crop" },
   { name: "Dining Table Set", price: 350, days: 4, img: "https://images.unsplash.com/photo-1617806118233-18e1de247200?w=300&h=225&fit=crop" },
