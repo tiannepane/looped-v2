@@ -3,8 +3,10 @@ import AppLayout from "@/components/AppLayout";
 import StepIndicator from "@/components/listing/StepIndicator";
 import PhotoUploadStep from "@/components/listing/PhotoUploadStep";
 import AnalysisModal from "@/components/listing/AnalysisModal";
-import KanbanBoard, { type ItemGroup } from "@/components/listing/KanbanBoard";
-import BulkPricingStep, { type ItemPricing } from "@/components/listing/BulkPricingStep";
+import { type ItemGroup } from "@/components/listing/KanbanBoard";
+import { type ItemPricing } from "@/components/listing/BulkPricingStep";
+import PhotoWall from "@/components/listing/PhotoWall";
+import DetailsReview from "@/components/listing/DetailsReview";
 import CrossPostingHub from "@/components/listing/CrossPostingHub";
 import CompletionStep from "@/components/listing/CompletionStep";
 
@@ -124,23 +126,27 @@ const NewListing = () => {
         {/* Analysis Modal */}
         {analyzing && <AnalysisModal analysisStep={analysisStep} />}
 
-        {/* Step 2: Kanban grouping */}
+        {/* Step 2: Photo Wall */}
         {step === 2 && (
-          <KanbanBoard
+          <PhotoWall
             groups={groups}
             setGroups={setGroups}
             ungroupedPhotos={ungroupedPhotos}
             setUngroupedPhotos={setUngroupedPhotos}
+            pricingData={pricingData}
             onContinue={() => setStep(3)}
           />
         )}
 
-        {/* Step 3: Pricing */}
+        {/* Step 3: Details Review (includes pricing) */}
         {step === 3 && (
-          <BulkPricingStep
+          <DetailsReview
             groups={groups}
+            setGroups={setGroups}
             pricingData={pricingData}
-            onContinue={() => setStep(4)}
+            setPricingData={setPricingData}
+            onBack={() => setStep(2)}
+            onComplete={() => setStep(4)}
           />
         )}
 
