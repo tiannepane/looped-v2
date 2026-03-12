@@ -92,9 +92,9 @@ const CalendarAnimation = () => {
           </p>
 
           {/* Day-of-week headers */}
-          <div className="grid grid-cols-7 gap-y-1.5 mb-1">
+          <div className="grid grid-cols-7 gap-y-2.5 mb-2">
             {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-              <span key={i} className="text-[9px] text-muted-foreground/50 text-center font-medium">
+              <span key={i} className="text-xs text-muted-foreground/50 text-center font-medium">
                 {d}
               </span>
             ))}
