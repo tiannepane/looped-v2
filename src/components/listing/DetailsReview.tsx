@@ -224,6 +224,23 @@ const DetailsReview = ({
                   />
                 </div>
 
+                {/* Postal Code */}
+                <div>
+                  <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-1">
+                    Postal Code (FSA)
+                  </label>
+                  <Input
+                    value={group.postalCode || ""}
+                    onChange={(e) => {
+                      const val = e.target.value.toUpperCase().slice(0, 3);
+                      handleFieldChange(group.id, "postalCode", val);
+                    }}
+                    placeholder="e.g. M5V"
+                    maxLength={3}
+                    className="text-sm h-9 bg-transparent border-0 border-b border-foreground/15 rounded-none px-0 focus-visible:ring-0 focus-visible:border-foreground/40 hover:border-foreground/30 transition-colors shadow-none w-24"
+                  />
+                </div>
+
                 {/* Description — sticky note style */}
                 <div>
                   <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-1">
