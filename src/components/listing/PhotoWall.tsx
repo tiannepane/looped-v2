@@ -401,7 +401,7 @@ const PhotoWall = ({
                   {/* Price sticker — red handwritten */}
                   {pricing && (
                     <div
-                      className="absolute top-4 right-14 bg-destructive/90 text-white px-2.5 py-1 rounded-full shadow-md z-20"
+                      className="absolute top-4 right-14 bg-primary/90 text-primary-foreground px-2.5 py-1 rounded-full shadow-md z-20"
                       style={{ transform: "rotate(8deg)" }}
                     >
                       <span className="text-sm font-black" style={{ fontFamily: "'Gaegu', cursive" }}>
