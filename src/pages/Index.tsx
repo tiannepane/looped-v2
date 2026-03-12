@@ -364,17 +364,17 @@ const Index = () => {
             {/* Scattered sticky notes */}
             <div className="hidden lg:block absolute -left-8 top-4 w-48 h-32 bg-dusty-rose/20 rounded-lg shadow-md p-4 flex items-center justify-center" style={{ transform: "rotate(-2deg)" }}>
               <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-12 h-4 bg-mustard/50 rounded-sm" style={{ transform: "rotate(3deg)" }} />
-              <p className="text-lg font-bold text-foreground text-center mt-2">14,000+<br /><span className="text-sm font-normal text-muted-foreground">prices tracked</span></p>
+              <p className="text-sm font-bold text-foreground text-center mt-2" style={{ fontFamily: "'Gaegu', cursive" }}>"We've done the homework on 14k+ local items"</p>
             </div>
 
             <div className="hidden lg:block absolute -right-4 top-12 w-48 h-32 bg-sage/20 rounded-lg shadow-md p-4 flex items-center justify-center" style={{ transform: "rotate(1deg)" }}>
               <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-12 h-4 bg-mustard/50 rounded-sm" style={{ transform: "rotate(-2deg)" }} />
-              <p className="text-lg font-bold text-foreground text-center mt-2">Updated<br /><span className="text-sm font-normal text-muted-foreground">with every sale</span></p>
+              <p className="text-sm font-bold text-foreground text-center mt-2" style={{ fontFamily: "'Gaegu', cursive" }}>"Bullseye pricing. 95% accuracy on every list."</p>
             </div>
 
             <div className="hidden lg:block absolute -left-4 bottom-4 w-48 h-32 bg-mustard/20 rounded-lg shadow-md p-4 flex items-center justify-center" style={{ transform: "rotate(-1.5deg)" }}>
               <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-12 h-4 bg-mustard/50 rounded-sm" style={{ transform: "rotate(1deg)" }} />
-              <p className="text-lg font-bold text-foreground text-center mt-2">Postal code<br /><span className="text-sm font-normal text-muted-foreground">accurate</span></p>
+              <p className="text-sm font-bold text-foreground text-center mt-2" style={{ fontFamily: "'Gaegu', cursive" }}>"Always fresh. Updated with every local sale."</p>
             </div>
 
             {/* Center pricing card */}
