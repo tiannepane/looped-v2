@@ -80,7 +80,7 @@ const CalendarAnimation = () => {
         className={`transition-opacity duration-500 ${fading ? "opacity-0" : "opacity-100"}`}
       >
         {/* Color strip */}
-        <div className="h-8 rounded-t-2xl" style={{ background: moment.color }} />
+        <div className="h-12 rounded-t-2xl" style={{ background: moment.color }} />
 
         <div className="px-5 pt-3 pb-5">
           {/* Month */}
