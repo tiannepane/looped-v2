@@ -101,7 +101,7 @@ const CalendarAnimation = () => {
           </div>
 
           {/* Calendar grid */}
-          <div className="grid grid-cols-7 gap-y-1.5">
+          <div className="grid grid-cols-7 gap-y-2.5">
             {CALENDAR_DAYS.flat().map((day, i) => {
               const isCircled = day === moment.circleDay;
               return (
