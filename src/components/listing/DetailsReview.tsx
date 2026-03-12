@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ArrowLeft, ArrowRight, Sparkles } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -51,6 +52,17 @@ const DetailsReview = ({
   const [editingTitleId, setEditingTitleId] = useState<string | null>(null);
 
   const totalValue = pricingData.reduce((sum, p) => sum + p.recommended, 0);
+
+  const allPostalCodesValid = groups.every((g) => g.postalCode && g.postalCode.length === 3);
+
+  const handleComplete = () => {
+    if (!allPostalCodesValid) {
+      const el = document.querySelector('[data-missing-postal]');
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+    onComplete();
+  };
 
   const handleFieldChange = (groupId: string, field: string, value: string) => {
     setGroups((prev) =>
@@ -225,9 +237,9 @@ const DetailsReview = ({
                 </div>
 
                 {/* Postal Code */}
-                <div>
+                <div {...(!group.postalCode || group.postalCode.length < 3 ? { 'data-missing-postal': '' } : {})}>
                   <label className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-1">
-                    Postal Code (FSA)
+                    Postal Code (FSA) <span className="text-destructive">*</span>
                   </label>
                   <Input
                     value={group.postalCode || ""}
@@ -237,8 +249,16 @@ const DetailsReview = ({
                     }}
                     placeholder="e.g. M5V"
                     maxLength={3}
-                    className="text-sm h-9 bg-transparent border-0 border-b border-foreground/15 rounded-none px-0 focus-visible:ring-0 focus-visible:border-foreground/40 hover:border-foreground/30 transition-colors shadow-none w-24"
+                    className={cn(
+                      "text-sm h-9 bg-transparent border-0 border-b rounded-none px-0 focus-visible:ring-0 transition-colors shadow-none w-24",
+                      !group.postalCode || group.postalCode.length < 3
+                        ? "border-destructive/50 hover:border-destructive/70 focus-visible:border-destructive"
+                        : "border-foreground/15 hover:border-foreground/30 focus-visible:border-foreground/40"
+                    )}
                   />
+                  {!group.postalCode || group.postalCode.length < 3 ? (
+                    <p className="text-[10px] text-destructive mt-1">Required — 3 characters</p>
+                  ) : null}
                 </div>
 
                 {/* Description — sticky note style */}
@@ -334,7 +354,8 @@ const DetailsReview = ({
             </span>
           </p>
           <Button
-            onClick={onComplete}
+            onClick={handleComplete}
+            disabled={!allPostalCodesValid}
             className="rounded-full px-10 h-12 text-lg font-bold bg-primary text-primary-foreground hover:bg-primary/90 gap-2 transition-all"
             style={{
               fontFamily: "'Gaegu', cursive",
