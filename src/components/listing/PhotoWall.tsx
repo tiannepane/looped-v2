@@ -332,8 +332,8 @@ const PhotoWall = ({
 
       {/* Gingham tablecloth area */}
       <div className="mx-4 md:mx-8 lg:mx-16 rounded-2xl p-8 relative tablecloth-gingham">
-        {/* Strict 3x2 grid */}
-        <div className="grid grid-cols-3 gap-6">
+        {/* 2-column, max 3 rows (6 items) grid */}
+        <div className="grid grid-cols-2 gap-6">
           {/* Render actual coasters */}
           {tableGroups.map((group, gi) => {
             const pricing = pricingData.find((p) => p.groupId === group.id);
