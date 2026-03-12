@@ -290,8 +290,8 @@ const Index = () => {
             >
               MAKE IT<br />COUNT
             </h1>
-            <p className="text-xl font-normal text-muted-foreground mt-6 max-w-lg">
-              Your stuff changes when your life does. Make it count.
+            <p className="text-xl text-muted-foreground mt-6 max-w-lg" style={{ fontFamily: "'Caveat', cursive", fontSize: "1.6rem" }}>
+              Your stuff changes when your life does.
             </p>
             <div className="mt-10">
               <Button
