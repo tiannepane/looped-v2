@@ -83,6 +83,7 @@ const NewListing = () => {
       ...mock,
       id: `group-${i}`,
       confirmed: false,
+      rejected: false,
       editedFields: new Set<string>(),
       photos: photosCopy.slice(i * photosPerGroup, (i + 1) * photosPerGroup),
     }));
