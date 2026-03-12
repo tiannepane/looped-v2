@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Plus, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { ItemGroup } from "./KanbanBoard";
@@ -24,7 +24,7 @@ const Polaroid = ({
     className={`rounded-[3px] ${className}`}
     style={{
       background: "linear-gradient(145deg, #faf8f5 0%, #f0ece4 50%, #e8e2d8 100%)",
-      padding: "6px 6px 32px 6px",
+      padding: "5px 5px 28px 5px",
       boxShadow:
         "0 2px 8px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)",
       ...style,
@@ -45,13 +45,23 @@ const PhotoWall = ({
 }: PhotoWallProps) => {
   const [expandedStack, setExpandedStack] = useState<string | null>(null);
   const [dragOverTarget, setDragOverTarget] = useState<string | null>(null);
-  const expandedRef = useRef<HTMLDivElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   const dragData = useRef<{ photo: string; sourceId: string | null } | null>(null);
 
   const totalValue = pricingData.reduce((sum, p) => sum + p.recommended, 0);
-  // Auto-remove empty groups
-  const activeGroups = groups.filter((g) => g.photos.length > 0 || expandedStack === g.id);
   const ungroupedCount = ungroupedPhotos.length;
+
+  // Close modal on click outside
+  useEffect(() => {
+    if (!expandedStack) return;
+    const handler = (e: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(e.target as Node)) {
+        setExpandedStack(null);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [expandedStack]);
 
   const onDragStart = (photo: string, sourceGroupId: string | null) => {
     dragData.current = { photo, sourceId: sourceGroupId };
@@ -143,95 +153,26 @@ const PhotoWall = ({
     dragData.current = null;
   };
 
-  // Clean up empty groups (except currently expanded)
-  const visibleGroups = groups.filter(
-    (g) => g.photos.length > 0 || expandedStack === g.id
-  );
+  const visibleGroups = groups.filter((g) => g.photos.length > 0);
+  const expandedGroup = groups.find((g) => g.id === expandedStack);
 
   return (
-    <div className="px-4 md:px-8 lg:px-16 pt-4 pb-28">
-      {/* Header — compact */}
-      <h2 className="text-2xl font-bold tracking-tight text-foreground mb-6">
+    <div className="px-4 md:px-8 lg:px-16 pt-2 pb-24">
+      {/* Header */}
+      <h2 className="text-2xl font-bold tracking-tight text-foreground mb-5">
         We found {visibleGroups.length} items worth{" "}
         <span className="text-primary">~${totalValue.toLocaleString()}</span>
       </h2>
 
-      {/* Stacks grid */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 lg:gap-10">
+      {/* Stacks grid — compact */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
         {visibleGroups.map((group) => {
           const pricing = pricingData.find((p) => p.groupId === group.id);
-          const isExpanded = expandedStack === group.id;
           const isDragOver = dragOverTarget === group.id;
           const cover = group.photos[0];
-          const peek1 = group.photos[1];
-          const peek2 = group.photos[2];
+          const peek1 = group.photos[1] || (group.photos.length > 0 ? group.photos[0] : null);
+          const showPeek = group.photos.length >= 1;
 
-          // Expanded view
-          if (isExpanded) {
-            return (
-              <div
-                key={group.id}
-                ref={expandedRef}
-                className="col-span-full border border-border rounded-2xl p-6 animate-fade-in"
-                style={{ background: "linear-gradient(135deg, #faf8f5, #f5f0ea)" }}
-                onDragOver={(e) => onDragOver(e, group.id)}
-                onDragLeave={onDragLeave}
-                onDrop={(e) => onDrop(e, group.id)}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <div>
-                    <h3 className="text-lg font-semibold tracking-tight text-foreground">
-                      {group.title}
-                    </h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      Drag photos to other stacks · hover to delete
-                    </p>
-                  </div>
-                  <button
-                    onClick={() => setExpandedStack(null)}
-                    className="text-muted-foreground hover:text-foreground transition-colors"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-
-                <div className="flex gap-5 overflow-x-auto pb-3 pt-1">
-                  {group.photos.map((photo, i) => (
-                    <div key={i} className="relative flex-shrink-0 group/photo">
-                      <Polaroid
-                        className="cursor-grab active:cursor-grabbing hover:-translate-y-1 transition-transform duration-200"
-                        draggable
-                        onDragStart={() => onDragStart(photo, group.id)}
-                      >
-                        <img
-                          src={photo}
-                          alt={`${group.title} ${i + 1}`}
-                          className="w-32 h-32 object-cover rounded-[2px]"
-                          draggable={false}
-                        />
-                      </Polaroid>
-                      <button
-                        className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity shadow-md z-10"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deletePhoto(photo, group.id);
-                        }}
-                      >
-                        <Trash2 className="w-3 h-3" />
-                      </button>
-                    </div>
-                  ))}
-                  {group.photos.length === 0 && (
-                    <p className="text-sm text-muted-foreground py-6">
-                      Drop photos here or this item will be removed.
-                    </p>
-                  )}
-                </div>
-              </div>
-            );
-          }
-
-          // Collapsed stack
           return (
             <div
               key={group.id}
@@ -241,34 +182,39 @@ const PhotoWall = ({
               onClick={() => setExpandedStack(group.id)}
               onDragOver={(e) => onDragOver(e, group.id)}
               onDragLeave={onDragLeave}
-              onDrop={(e) => {
-                onDrop(e, group.id);
-              }}
+              onDrop={(e) => onDrop(e, group.id)}
             >
-              {/* Polaroid stack with more visible peek */}
+              {/* Polaroid stack */}
               <div className="relative" style={{ aspectRatio: "3/4" }}>
-                {/* Third peek */}
-                {peek2 && (
+                {/* Always show a "shadow" peek behind to hint at stacking */}
+                {showPeek && (
                   <Polaroid
-                    className="absolute inset-0 w-full h-full transition-all duration-300 group-hover:[transform:translate(14px,14px)_rotate(-7deg)_scale(0.88)]"
+                    className="absolute inset-0 w-full h-full transition-all duration-300 group-hover:[transform:translate(12px,10px)_rotate(-8deg)_scale(0.92)]"
                     style={{
-                      transform: "translate(10px, 10px) rotate(-6deg) scale(0.9)",
+                      transform: "translate(8px, 6px) rotate(-7deg) scale(0.93)",
                       zIndex: 1,
                     }}
                   >
-                    <img src={peek2} alt="" className="w-full h-full object-cover rounded-[2px]" />
+                    <img
+                      src={peek1!}
+                      alt=""
+                      className="w-full h-full object-cover rounded-[2px]"
+                    />
                   </Polaroid>
                 )}
-                {/* Second peek */}
-                {peek1 && (
+                {group.photos.length > 1 && (
                   <Polaroid
-                    className="absolute inset-0 w-full h-full transition-all duration-300 group-hover:[transform:translate(8px,8px)_rotate(5deg)_scale(0.93)]"
+                    className="absolute inset-0 w-full h-full transition-all duration-300 group-hover:[transform:translate(7px,5px)_rotate(6deg)_scale(0.95)]"
                     style={{
-                      transform: "translate(5px, 5px) rotate(4deg) scale(0.95)",
+                      transform: "translate(4px, 3px) rotate(5deg) scale(0.96)",
                       zIndex: 2,
                     }}
                   >
-                    <img src={peek1} alt="" className="w-full h-full object-cover rounded-[2px]" />
+                    <img
+                      src={group.photos[1]}
+                      alt=""
+                      className="w-full h-full object-cover rounded-[2px]"
+                    />
                   </Polaroid>
                 )}
                 {/* Cover */}
@@ -297,7 +243,7 @@ const PhotoWall = ({
                 )}
               </div>
 
-              {/* Title on its own line, price below */}
+              {/* Title + price */}
               <div className="mt-3">
                 <p className="text-base font-semibold tracking-tight text-foreground truncate">
                   {group.title}
@@ -364,7 +310,7 @@ const PhotoWall = ({
       {/* Ungrouped section */}
       {ungroupedCount > 0 && (
         <div
-          className={`mt-12 pt-8 border-t border-border/50 transition-colors duration-200 ${
+          className={`mt-10 pt-6 border-t border-border/50 transition-colors duration-200 ${
             dragOverTarget === "ungrouped" ? "bg-primary/5 rounded-xl" : ""
           }`}
           onDragOver={(e) => onDragOver(e, "ungrouped")}
@@ -397,6 +343,70 @@ const PhotoWall = ({
                 </button>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* Modal overlay for expanded stack */}
+      {expandedStack && expandedGroup && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/20 backdrop-blur-sm animate-fade-in">
+          <div
+            ref={modalRef}
+            className="w-full max-w-3xl mx-4 rounded-2xl border border-border p-8 shadow-xl max-h-[80vh] overflow-y-auto"
+            style={{ background: "linear-gradient(135deg, #faf8f5, #f5f0ea)" }}
+            onDragOver={(e) => onDragOver(e, expandedGroup.id)}
+            onDragLeave={onDragLeave}
+            onDrop={(e) => onDrop(e, expandedGroup.id)}
+          >
+            <div className="flex items-center justify-between mb-5">
+              <div>
+                <h3 className="text-xl font-bold tracking-tight text-foreground">
+                  {expandedGroup.title}
+                </h3>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Drag photos to other stacks · hover to delete
+                </p>
+              </div>
+              <button
+                onClick={() => setExpandedStack(null)}
+                className="text-muted-foreground hover:text-foreground transition-colors p-1"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="flex gap-5 flex-wrap">
+              {expandedGroup.photos.map((photo, i) => (
+                <div key={i} className="relative group/photo">
+                  <Polaroid
+                    className="cursor-grab active:cursor-grabbing hover:-translate-y-1 transition-transform duration-200"
+                    draggable
+                    onDragStart={() => onDragStart(photo, expandedGroup.id)}
+                  >
+                    <img
+                      src={photo}
+                      alt={`${expandedGroup.title} ${i + 1}`}
+                      className="w-36 h-36 object-cover rounded-[2px]"
+                      draggable={false}
+                    />
+                  </Polaroid>
+                  <button
+                    className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-destructive text-destructive-foreground flex items-center justify-center opacity-0 group-hover/photo:opacity-100 transition-opacity shadow-md z-10"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deletePhoto(photo, expandedGroup.id);
+                    }}
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              {expandedGroup.photos.length === 0 && (
+                <p className="text-sm text-muted-foreground py-8">
+                  No photos — drop some here or this item will be removed.
+                </p>
+              )}
+            </div>
           </div>
         </div>
       )}
