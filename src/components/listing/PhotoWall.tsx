@@ -336,21 +336,21 @@ const PhotoWall = ({
                   {/* Photos — fan-out on hover */}
                   {group.photos.length > 0 ? (
                     <div className="flex items-center justify-center min-h-[150px] overflow-visible">
-                      <div className="relative flex items-center justify-center">
+                      <div className="flex items-end gap-[-8px]" style={{ marginLeft: group.photos.length > 1 ? '8px' : '0' }}>
                         {group.photos.map((photo, pi) => {
                           const total = group.photos.length;
-                          const fanSpread = isHovered ? (pi - (total - 1) / 2) * 80 : pi * -16;
-                          const fanRotation = isHovered ? (pi - (total - 1) / 2) * 4 : (pi % 2 === 0 ? -2 : 2);
-                          const zIndex = isHovered ? pi + 10 : total - pi;
+                          const stackOffset = isHovered ? 0 : pi > 0 ? -20 : 0;
+                          const fanRotation = isHovered ? (pi - (total - 1) / 2) * 6 : (pi % 2 === 0 ? -2 : 2);
 
                           return (
                             <div
                               key={pi}
-                              className="absolute group/photo"
+                              className="relative group/photo flex-shrink-0"
                               style={{
-                                transform: `translateX(${fanSpread}px) rotate(${fanRotation}deg)`,
-                                zIndex,
-                                transition: "transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                                marginLeft: pi > 0 ? (isHovered ? '4px' : '-20px') : '0',
+                                transform: `rotate(${fanRotation}deg)`,
+                                zIndex: isHovered ? pi + 10 : total - pi,
+                                transition: "all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1)",
                               }}
                             >
                               <img
@@ -364,7 +364,6 @@ const PhotoWall = ({
                                 className="w-24 h-32 object-cover rounded-lg shadow-md cursor-grab active:cursor-grabbing
                                   hover:shadow-xl transition-shadow duration-200"
                               />
-                              {/* Delete X on each photo */}
                               <button
                                 onClick={(e) => { e.stopPropagation(); deletePhoto(group.id, photo); }}
                                 className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-foreground text-background flex items-center justify-center
