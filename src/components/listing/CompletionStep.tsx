@@ -14,10 +14,10 @@ const CompletionStep = ({ itemCount, onListAnother }: CompletionStepProps) => {
         {itemCount} item{itemCount !== 1 ? "s" : ""} posted and making money while you sleep.
       </p>
       <div className="flex gap-4 justify-center">
-        <Button variant="outline" className="rounded-lg" onClick={onListAnother}>
+        <Button variant="outline" className="rounded-full" onClick={onListAnother}>
           List More Items
         </Button>
-        <Button asChild className="rounded-lg">
+        <Button asChild className="rounded-full bg-foreground text-background hover:bg-foreground/90 font-bold" style={{ fontFamily: "'Gaegu', cursive" }}>
           <a href="/items">View My Items</a>
         </Button>
       </div>

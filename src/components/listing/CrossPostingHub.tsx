@@ -334,7 +334,7 @@ const CrossPostingHub = ({ groups, pricingData, onComplete }: CrossPostingHubPro
         </label>
       </div>
 
-      <Button onClick={onComplete} className="w-full rounded-lg" size="lg" disabled={!allDone}>
+      <Button onClick={onComplete} className="w-full rounded-full bg-foreground text-background hover:bg-foreground/90 font-bold" style={{ fontFamily: "'Gaegu', cursive" }} size="lg" disabled={!allDone}>
         Complete
       </Button>
     </div>

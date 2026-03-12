@@ -91,7 +91,7 @@ const PhotoUploadStep = ({ photos, setPhotos, onAnalyze }: PhotoUploadStepProps)
             )}
           </div>
           <div className="flex items-center gap-4">
-            <Button onClick={onAnalyze} size="lg" className="rounded-lg">
+            <Button onClick={onAnalyze} size="lg" className="rounded-full bg-foreground text-background hover:bg-foreground/90 font-bold" style={{ fontFamily: "'Gaegu', cursive" }}>
               <Sparkles className="w-4 h-4 mr-2" />
               Analyze with AI
             </Button>

@@ -463,7 +463,7 @@ const PhotoWall = ({
                   <Button
                     type="submit"
                     size="sm"
-                    className="rounded-lg px-4 h-8 text-sm"
+                    className="rounded-full px-4 h-8 text-sm bg-foreground text-background hover:bg-foreground/90"
                   >
                     <Check className="w-3.5 h-3.5 mr-1" /> Create
                   </Button>
