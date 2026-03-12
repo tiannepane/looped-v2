@@ -35,17 +35,24 @@ const EditableTitle = ({
 
   if (!editing) {
     return (
-      <button
-        className="group/edit flex items-center gap-1.5 text-sm font-bold tracking-tight text-foreground uppercase truncate w-full"
+      <div
+        className="inline-block px-3 py-1 rounded-sm cursor-pointer group/edit"
+        style={{
+          background: "hsl(220, 20%, 12%)",
+          transform: "rotate(1deg)",
+        }}
         onClick={() => {
           setEditing(true);
           setDraft(value);
           setTimeout(() => inputRef.current?.focus(), 0);
         }}
       >
-        <span className="truncate">{value}</span>
-        <Pencil className="w-3.5 h-3.5 opacity-0 group-hover/edit:opacity-40 transition-opacity flex-shrink-0" />
-      </button>
+        <span className="text-[11px] font-medium tracking-[0.15em] text-white uppercase truncate block max-w-[200px]"
+          style={{ fontFamily: "'Courier New', 'Courier', monospace" }}
+        >
+          {value}
+        </span>
+      </div>
     );
   }
 
