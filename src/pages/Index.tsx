@@ -105,8 +105,8 @@ const CalendarAnimation = () => {
             {CALENDAR_DAYS.flat().map((day, i) => {
               const isCircled = day === moment.circleDay;
               return (
-                <div key={i} className="relative flex items-center justify-center h-6">
-                  <span className={`text-[10px] ${day ? "text-foreground/30" : ""} text-center`}>
+                <div key={i} className="relative flex items-center justify-center h-8">
+                  <span className={`text-sm ${day ? "text-foreground/30" : ""} text-center`}>
                     {day ?? ""}
                   </span>
                   {isCircled && phase !== "circle" && (
