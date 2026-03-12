@@ -82,7 +82,7 @@ const CalendarAnimation = () => {
         {/* Color strip */}
         <div className="h-12 rounded-t-2xl" style={{ background: moment.color }} />
 
-        <div className="px-5 pt-3 pb-5">
+        <div className="px-8 pt-5 pb-8">
           {/* Month */}
           <p
             className="text-[11px] uppercase tracking-[0.2em] font-medium text-center mb-3"
