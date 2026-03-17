@@ -10,41 +10,55 @@ import DetailsReview from "@/components/listing/DetailsReview";
 import CrossPostingHub from "@/components/listing/CrossPostingHub";
 import CompletionStep from "@/components/listing/CompletionStep";
 
-// TODO: Send all photos to Claude Vision API in a single call.
-// Prompt should ask Claude to group photos by item and generate
-// title, category, condition, size, and description for each group.
+const DEMO_PHOTOS = [
+  "/demo/sofa1.jpg",
+  "/demo/sofa2.jpg",
+  "/demo/sofa3.jpg",
+  "/demo/magic1.jpg",
+  "/demo/magic2.jpg",
+  "/demo/lamp1.jpg",
+  "/demo/lamp2.jpg",
+  "/demo/shoes1.jpg",
+  "/demo/shoes2.png",
+  "/demo/shoes3.png",
+];
+
 const MOCK_GROUPS: Omit<ItemGroup, "id" | "confirmed" | "rejected" | "editedFields">[] = [
   {
     title: "Mid-Century Modern Sofa — Orange",
     category: "Furniture",
     condition: "Good",
     size: "3-seater",
-    description: "Beautiful mid-century modern sofa in warm orange with tufted back and solid wood legs. Clean, no stains or tears. Pet-free, smoke-free home. Pickup downtown Toronto.",
-    photos: [],
+    description:
+      "Beautiful mid-century modern sofa in warm orange with tufted back and solid wood legs. Clean, no stains or tears. Pet-free, smoke-free home. Pickup downtown Toronto.",
+    photos: ["/demo/sofa1.jpg", "/demo/sofa2.jpg", "/demo/sofa3.jpg"],
   },
   {
     title: "Lightly Used Magic Keyboard",
     category: "Electronics",
     condition: "Like New",
     size: "Full-size",
-    description: "Apple Magic Keyboard with numeric keypad. Silver/white. All keys work perfectly. Comes with Lightning cable. Barely used — switched to mechanical.",
-    photos: [],
+    description:
+      "Apple Magic Keyboard with numeric keypad. Silver/white. All keys work perfectly. Comes with Lightning cable. Barely used — switched to mechanical.",
+    photos: ["/demo/magic1.jpg", "/demo/magic2.jpg"],
   },
   {
     title: "Vintage Brass Desk Lamp",
     category: "Home Decor",
     condition: "Good",
     size: "16 inches tall",
-    description: "Beautiful vintage brass desk lamp with adjustable arm. Warm light, works perfectly. Minor patina adds character. Great for a reading nook or home office.",
-    photos: [],
+    description:
+      "Beautiful vintage brass desk lamp with adjustable arm. Warm light, works perfectly. Minor patina adds character. Great for a reading nook or home office.",
+    photos: ["/demo/lamp1.jpg", "/demo/lamp2.jpg"],
   },
   {
     title: "Nike Air Max 90 — Size 10",
     category: "Clothing & Shoes",
     condition: "Fair",
     size: "Men's 10",
-    description: "Nike Air Max 90 in grey/white. Some wear on the soles but uppers are clean. Still very comfortable. Selling because I upgraded.",
-    photos: [],
+    description:
+      "Nike Air Max 90 in grey/white. Some wear on the soles but uppers are clean. Still very comfortable. Selling because I upgraded.",
+    photos: ["/demo/shoes1.jpg", "/demo/shoes2.png", "/demo/shoes3.png"],
   },
 ];
 
@@ -57,7 +71,7 @@ const MOCK_PRICING: Omit<ItemPricing, "groupId">[] = [
 
 const NewListing = () => {
   const [step, setStep] = useState(1);
-  const [photos, setPhotos] = useState<string[]>([]);
+  const [photos, setPhotos] = useState<string[]>(DEMO_PHOTOS);
   const [analyzing, setAnalyzing] = useState(false);
   const [analysisStep, setAnalysisStep] = useState(0);
   const [groups, setGroups] = useState<ItemGroup[]>([]);
@@ -67,7 +81,6 @@ const NewListing = () => {
   const startAnalysis = async () => {
     setAnalyzing(true);
     setAnalysisStep(1);
-    // TODO: connect to AI analysis API
     await new Promise((r) => setTimeout(r, 1200));
     setAnalysisStep(2);
     await new Promise((r) => setTimeout(r, 1000));
@@ -76,18 +89,13 @@ const NewListing = () => {
     setAnalysisStep(4);
     await new Promise((r) => setTimeout(r, 1500));
 
-    // Distribute uploaded photos among mock groups
-    const photosCopy = [...photos];
-    const groupCount = MOCK_GROUPS.length;
-    const photosPerGroup = Math.ceil(photosCopy.length / groupCount);
-
+    // Each mock group already has its photos assigned directly
     const generatedGroups: ItemGroup[] = MOCK_GROUPS.map((mock, i) => ({
       ...mock,
       id: `group-${i}`,
       confirmed: false,
       rejected: false,
       editedFields: new Set<string>(),
-      photos: photosCopy.slice(i * photosPerGroup, (i + 1) * photosPerGroup),
     }));
 
     setGroups(generatedGroups);
@@ -105,7 +113,7 @@ const NewListing = () => {
 
   const resetAll = () => {
     setStep(1);
-    setPhotos([]);
+    setPhotos(DEMO_PHOTOS);
     setAnalyzing(false);
     setAnalysisStep(0);
     setGroups([]);
@@ -118,15 +126,12 @@ const NewListing = () => {
       <div className="max-w-5xl mx-auto">
         <StepIndicator currentStep={step} totalSteps={4} />
 
-        {/* Step 1: Photo Upload */}
         {step === 1 && !analyzing && (
           <PhotoUploadStep photos={photos} setPhotos={setPhotos} onAnalyze={startAnalysis} />
         )}
 
-        {/* Analysis Modal */}
         {analyzing && <AnalysisModal analysisStep={analysisStep} />}
 
-        {/* Step 2: Photo Wall */}
         {step === 2 && (
           <PhotoWall
             groups={groups}
@@ -138,7 +143,6 @@ const NewListing = () => {
           />
         )}
 
-        {/* Step 3: Details Review (includes pricing) */}
         {step === 3 && (
           <DetailsReview
             groups={groups}
@@ -150,19 +154,14 @@ const NewListing = () => {
           />
         )}
 
-        {/* Step 4: Cross-posting hub */}
         {step === 4 && (
           <CrossPostingHub
             groups={groups}
             pricingData={pricingData}
-            onComplete={() => {
-              // TODO: save all listings to database
-              setStep(5);
-            }}
+            onComplete={() => setStep(5)}
           />
         )}
 
-        {/* Step 5: Done */}
         {step === 5 && (
           <CompletionStep itemCount={groups.length} onListAnother={resetAll} />
         )}
